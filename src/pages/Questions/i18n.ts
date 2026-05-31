@@ -1,0 +1,31 @@
+const questionsTranslations = {
+  'questions.eyebrow': { EN: 'Knowledge base', ZH: '知识库' },
+  'questions.title': { EN: 'Software Development Q&A', ZH: '软件开发问答' },
+  'questions.subtitle': {
+    EN: 'Browse concise answers to common software development concepts, model terms, and practical workflows.',
+    ZH: '浏览常见软件开发概念、模型术语和实用工作流的简明答案。',
+  },
+  'questions.meta_label': { EN: 'available', ZH: '可浏览' },
+  'questions.workspace_label': { EN: 'Question browser', ZH: '问题浏览器' },
+  'questions.index_label': { EN: 'Question list', ZH: '问题列表' },
+  'questions.index_title': { EN: 'Questions', ZH: '问题' },
+  'questions.index_count': { EN: '{count}', ZH: '{count}' },
+  'questions.index_pagination_label': { EN: 'Question list pagination', ZH: '问题列表分页' },
+  'questions.index_page_status': { EN: '{page} / {total}', ZH: '{page} / {total}' },
+  'questions.selected_label': { EN: 'Selected answer', ZH: '当前答案' },
+  'questions.empty': { EN: 'No questions match your search.', ZH: '未找到匹配的问题。' },
+  'questions.result_count': { EN: '{count} questions', ZH: '{count} 个问题' },
+  'questions.sort_label': { EN: 'Sort', ZH: '排序' },
+  'questions.sort.alpha': { EN: 'A → Z', ZH: '按字母' },
+  'questions.sort.recency': { EN: 'Recently updated', ZH: '最近更新' },
+  'questions.sort.displayOrder': { EN: 'Display order', ZH: '显示顺序' },
+  'questions.tags_label': { EN: 'Tags', ZH: '标签' },
+  'questions.tags_filter': { EN: 'Filter by tags', ZH: '按标签筛选' },
+  'questions.filters.all': { EN: 'All', ZH: '全部' },
+  'questions.search_clear': { EN: 'Clear search', ZH: '清除搜索' },
+  'questions.search_placeholder': { EN: 'Search questions, answers, or tags', ZH: '搜索问题、答案或标签' },
+  'questions.expand': { EN: 'Show answer for {question}', ZH: '查看“{question}”的答案' },
+  'questions.collapse': { EN: 'Hide answer for {question}', ZH: '收起“{question}”的答案' },
+}
+
+export default questionsTranslations
