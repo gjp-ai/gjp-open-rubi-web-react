@@ -3,6 +3,7 @@ import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { QuestionImages } from './QuestionImages'
+import './MultipleChoiceQuestionCard.css'
 
 const options = ['A', 'B', 'C', 'D'] as const
 
@@ -30,86 +31,175 @@ export const MultipleChoiceQuestionCard = ({
     [],
   )
 
+  const handleCardClick = useCallback(() => {
+    if (!isExpanded) {
+      setIsExpanded(true)
+    }
+  }, [isExpanded])
+
   const handleOptionClick = useCallback(
     (event: React.MouseEvent, option: string) => {
       event.stopPropagation()
       if (isCorrect || selectedAnswers.includes(option)) return
-      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current)
+
+      // Clear any existing error styling
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current)
+        errorTimeoutRef.current = null
+      }
       setErrorOption(null)
-      const previousCorrect = selectedAnswers.filter((answer) => answer === question.answer)
-      setSelectedAnswers([...previousCorrect, option])
+      // Remove any previous wrong answers
+      setSelectedAnswers((prev) => prev.filter((ans) => ans === question.answer))
+
+      const newAnswers = [...selectedAnswers.filter((ans) => ans === question.answer), option]
+      setSelectedAnswers(newAnswers)
+
       if (option === question.answer) {
         setIsCorrect(true)
       } else {
         setErrorOption(option)
+        // Auto-remove error style after 2 seconds
         errorTimeoutRef.current = window.setTimeout(() => {
           setErrorOption(null)
-          setSelectedAnswers((current) => current.filter((answer) => answer !== option))
+          setSelectedAnswers((prev) => prev.filter((ans) => ans !== option))
           errorTimeoutRef.current = null
-        }, 1600)
+        }, 2000)
       }
     },
     [isCorrect, question.answer, selectedAnswers],
   )
 
-  const optionClass = (option: string) => {
-    if (!selectedAnswers.includes(option)) return 'mcq-option'
-    if (option === errorOption) return 'mcq-option error'
-    if (option === question.answer) return 'mcq-option correct'
-    return 'mcq-option selected'
-  }
+  const getOptionClass = useCallback(
+    (option: string) => {
+      const wasSelected = selectedAnswers.includes(option)
+      if (!wasSelected) return 'mcq-option'
+      if (option === errorOption) return 'mcq-option error'
+      if (option === question.answer) return 'mcq-option correct'
+      return 'mcq-option selected'
+    },
+    [selectedAnswers, question.answer, errorOption],
+  )
 
-  const collapse = (event: React.MouseEvent) => {
-    event.stopPropagation()
-    setIsExpanded(false)
-    setSelectedAnswers([])
-    setIsCorrect(false)
-    setErrorOption(null)
-  }
+  const toggleExpanded = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setIsExpanded(!isExpanded)
+      if (isExpanded) {
+        // Reset answer state when collapsing
+        setSelectedAnswers([])
+        setIsCorrect(false)
+        setErrorOption(null)
+        if (errorTimeoutRef.current) {
+          clearTimeout(errorTimeoutRef.current)
+          errorTimeoutRef.current = null
+        }
+      }
+    },
+    [isExpanded],
+  )
 
   return (
     <div className={`mcq-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      {!isExpanded ? (
-        <button className="mcq-card-header" type="button" onClick={() => setIsExpanded(true)} aria-label={t('vocabulary.view_details')}>
-          <div className="mcq-card-question-preview">{htmlToText(question.question).slice(0, 180)}</div>
-          <span className="expand-icon">⌄</span>
+      {/* Collapsed view - just the question (1 line) */}
+      {!isExpanded && (
+        <button
+          className="mcq-card-header"
+          onClick={handleCardClick}
+          type="button"
+          aria-label={t('vocabulary.view_details')}
+        >
+          <div className="mcq-card-question-preview">{htmlToText(question.question).slice(0, 150)}</div>
+          <svg className="expand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 9l-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
-      ) : (
+      )}
+
+      {/* Expanded view - full question and options */}
+      {isExpanded && (
         <div className="mcq-card-expanded">
+          {/* Question header with collapse button */}
           <div className="mcq-card-header-expanded">
-            <QuestionImages questionId={question.id} referenceKey="multipleChoiceQuestionId" lang={lang} />
-            <div className="mcq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
-            <button type="button" className="collapse-btn" onClick={collapse} aria-label={t('vocabulary.hide')}>⌃</button>
+            <div>
+              <QuestionImages questionId={question.id} referenceKey="multipleChoiceQuestionId" lang={lang} />
+              <div className="mcq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
+            </div>
+            <button
+              className="collapse-btn"
+              onClick={toggleExpanded}
+              type="button"
+              aria-label={t('vocabulary.hide')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 15l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
+
+          {/* Options */}
           <div className="mcq-options">
             {options.map((letter) => {
               const value = question[`option${letter}` as keyof EduQuestion] as string | null | undefined
               if (!value) return null
               return (
-                <button key={letter} type="button" className={optionClass(letter)} onClick={(event) => handleOptionClick(event, letter)}>
+                <button
+                  key={letter}
+                  className={getOptionClass(letter)}
+                  onClick={(e) => handleOptionClick(e, letter)}
+                  type="button"
+                >
                   <span className="option-letter">{letter}</span>
                   <span className="option-content" dangerouslySetInnerHTML={renderHtml(value)} />
-                  {selectedAnswers.includes(letter) && question.answer === letter ? <span className="option-indicator">✓</span> : null}
-                  {selectedAnswers.includes(letter) && question.answer !== letter ? <span className="option-indicator">×</span> : null}
+                  {selectedAnswers.includes(letter) && question.answer === letter && (
+                    <span className="option-indicator correct-indicator">✓</span>
+                  )}
+                  {selectedAnswers.includes(letter) && question.answer !== letter && (
+                    <span className="option-indicator incorrect-indicator">✗</span>
+                  )}
                 </button>
               )
             })}
           </div>
-          {isCorrect ? <div className="mcq-feedback correct">✓ {t('edu.correct')}</div> : null}
-          {isCorrect && question.explanation ? (
+
+          {/* Answer Feedback */}
+          {isCorrect && (
+            <div className="mcq-feedback correct">
+              <span className="feedback-icon">✓</span>
+              <span className="feedback-text">{t('edu.correct')}</span>
+            </div>
+          )}
+
+          {/* Explanation */}
+          {isCorrect && question.explanation && (
             <div className="mcq-explanation">
               <h4>{t('edu.explanation')}</h4>
-              <div dangerouslySetInnerHTML={renderHtml(question.explanation)} />
+              <div className="explanation-content" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
             </div>
-          ) : null}
+          )}
+
+          {/* Question Metadata */}
           <div className="mcq-metadata">
-            {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
-            {question.successCount !== null && question.successCount !== undefined ? <span>✓ {question.successCount}</span> : null}
-            {question.failCount !== null && question.failCount !== undefined ? <span>× {question.failCount}</span> : null}
+            {question.difficultyLevel && (
+              <div className="mcq-meta-item">
+                <span className="meta-icon">📊</span>
+                <span className="meta-value difficulty">{question.difficultyLevel}</span>
+              </div>
+            )}
+            {question.successCount !== null && question.successCount !== undefined && (
+              <div className="mcq-meta-item">
+                <span className="meta-icon success">✓</span>
+                <span className="meta-value success">{question.successCount}</span>
+              </div>
+            )}
+            {question.failCount !== null && question.failCount !== undefined && (
+              <div className="mcq-meta-item">
+                <span className="meta-icon fail">✗</span>
+                <span className="meta-value fail">{question.failCount}</span>
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   )
 }
-

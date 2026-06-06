@@ -5,7 +5,6 @@ import { useUIContext } from '../../../shared/contexts/UIContext'
 import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
-import { Toolbar } from '../../../shared/components/Toolbar/Toolbar'
 import { getEduQuestions, type EduQuestionKind } from '../eduApi'
 import { htmlToText, splitTags } from '../eduUtils'
 import { TrueFalseQuestionCard } from './TrueFalseQuestionCard'
@@ -30,6 +29,8 @@ export const EduTrueFalseQuestionsPage = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
   const [isExpandedView, setIsExpandedView] = useState(false)
+  const [showPrintDialog, setShowPrintDialog] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const [printOptions, setPrintOptions] = useState({ showAnswer: false, showExplanation: false })
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTag ?? undefined
@@ -68,47 +69,184 @@ export const EduTrueFalseQuestionsPage = () => {
     setCurrentPage(1)
   }
 
+  const handleToggleView = () => {
+    setIsExpandedView((prev) => !prev)
+  }
+
+  const handleShowPrintDialog = () => {
+    setShowPrintDialog(true)
+  }
+
+  const handlePrintExam = () => {
+    const htmlContent = generatePrintExamSheet({
+      questions: displayItems,
+      title: t('edu.true-false-questions.title'),
+      language,
+      showAnswer: printOptions.showAnswer,
+      showExplanation: printOptions.showExplanation,
+    })
+    openPrintWindow(htmlContent)
+    setShowPrintDialog(false)
+  }
+
+  const handleReset = () => {
+    setSearchQuery('')
+    setSelectedTag(null)
+    setSortOrder('displayOrder')
+    setCurrentPage(1)
+  }
+
   return (
     <div className="page-container edu-page true-false-page">
-      <section className="edu-hero">
-        <div>
-          <h1>{t(`edu.${kind}.title`)}</h1>
-          <p>{t('edu.subtitle')}</p>
+      {/* ───── Filters Header: Title + Tags + Actions (single row) ───── */}
+      <div className="filters-container">
+        <div className="filters-header">
+          <div className="header-left">
+            <h2 className="page-title">
+              {t('nav.edu_questions')}
+              <span className="title-count">({displayItems.length})</span>
+            </h2>
+            {sectionTags.length > 0 && (
+              <div className="tags-scroll-area" role="group" aria-label={t('edu.tags_filter')}>
+                {sectionTags.map((tag) => {
+                  const isActive = selectedTag === tag
+                  return (
+                    <button
+                      key={tag}
+                      className={`tag-chip ${isActive ? 'active' : ''}`}
+                      onClick={() => setSelectedTag(isActive ? null : tag)}
+                      aria-pressed={isActive}
+                      type="button"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <line x1="7" y1="7" x2="7.01" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span>{tag}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="header-actions">
+            {/* Toggle expanded/compact view */}
+            <button
+              type="button"
+              onClick={handleToggleView}
+              title={isExpandedView ? t('vocabulary.compact') : t('vocabulary.detailed')}
+              aria-label={isExpandedView ? t('vocabulary.compact') : t('vocabulary.detailed')}
+              className={`action-btn ${isExpandedView ? 'active' : ''}`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {isExpandedView ? (
+                  <g>
+                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </g>
+                ) : (
+                  <g>
+                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="6" y1="12" x2="14" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="6" y1="16" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </g>
+                )}
+              </svg>
+            </button>
+            {/* Print */}
+            <button
+              type="button"
+              onClick={handleShowPrintDialog}
+              title={t('vocabulary.print')}
+              aria-label={t('vocabulary.print')}
+              className="action-btn"
+              disabled={displayItems.length === 0}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9V2h12v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 14h12v8H6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            {/* Reset */}
+            <button
+              type="button"
+              onClick={handleReset}
+              title={t('vocabulary.reset')}
+              aria-label={t('vocabulary.reset')}
+              className="action-btn"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M3 3v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {/* Filter toggle */}
+            <button
+              type="button"
+              onClick={() => setShowFilters((v) => !v)}
+              title={t('edu.tags_filter')}
+              aria-label={t('edu.tags_filter')}
+              className={`action-btn ${showFilters ? 'active' : ''}`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="edu-hero__count"><strong>{displayItems.length}</strong><span>{t('edu.result_count', { count: totalElements })}</span></div>
-      </section>
 
-      <Toolbar
-        sectionTags={sectionTags}
-        selectedTag={selectedTag}
-        onSelectTag={(tag) => {
-          setSelectedTag(tag)
-          setCurrentPage(1)
-        }}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearch}
-        onClearSearch={() => {
-          setSearchQuery('')
-          setCurrentPage(1)
-        }}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
-        namespace="edu"
-      />
-
-      <div className="edu-page-actions">
-        <button type="button" className="edu-page-action" onClick={() => setIsExpandedView((value) => !value)}>{isExpandedView ? t('vocabulary.compact') : t('vocabulary.detailed')}</button>
-        <label className="edu-print-option"><input type="checkbox" checked={printOptions.showAnswer} onChange={(event) => setPrintOptions((current) => ({ ...current, showAnswer: event.target.checked }))} /> {t('edu.answer')}</label>
-        <label className="edu-print-option"><input type="checkbox" checked={printOptions.showExplanation} onChange={(event) => setPrintOptions((current) => ({ ...current, showExplanation: event.target.checked }))} /> {t('edu.explanation')}</label>
-        <button type="button" className="edu-page-action" disabled={displayItems.length === 0} onClick={() => openPrintWindow(generatePrintExamSheet({ questions: displayItems, title: t('edu.true-false-questions.title'), language, ...printOptions }))}>{t('vocabulary.print')}</button>
+        {/* Expandable search/sort panel */}
+        {showFilters && (
+          <div className="filters-panel expanded">
+            <div className="filters-panel-inner">
+              <div className="mcq-search-sort-row">
+                <div className="mcq-search-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="m20 20-3.5-3.5M16 10.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    placeholder={t('edu.search_placeholder')}
+                    aria-label={t('edu.search_placeholder')}
+                    onChange={handleSearch}
+                  />
+                  {searchQuery && (
+                    <button type="button" className="mcq-search-clear" onClick={() => { setSearchQuery(''); setCurrentPage(1) }} aria-label={t('edu.search_clear')}>
+                      ×
+                    </button>
+                  )}
+                </div>
+                <div className="mcq-sort-buttons">
+                  {(['displayOrder', 'alpha', 'recent'] as const).map((order) => (
+                    <button
+                      key={order}
+                      type="button"
+                      className={`mcq-sort-btn ${sortOrder === order ? 'active' : ''}`}
+                      onClick={() => setSortOrder(order)}
+                    >
+                      {t(`edu.sort.${order === 'recent' ? 'recency' : order}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* ───── Content ───── */}
       {loading ? (
-        <div className="true-false-list" aria-hidden>{skeletonItems.map((item) => <div key={item} className="true-false-card skeleton" />)}</div>
+        <div className="tfq-grid" aria-hidden>{skeletonItems.map((item) => <div key={item} className="tfq-card skeleton" />)}</div>
       ) : error ? (
         <div className="state-card state-card--error">{error}</div>
+      ) : displayItems.length === 0 ? (
+        <div className="tfq-empty">📭 {t('edu.no_results')}</div>
       ) : (
-        <div className="true-false-list">
+        <div className="tfq-grid">
           {displayItems.map((question) => (
             <TrueFalseQuestionCard key={question.id} question={question} isExpandedView={isExpandedView} lang={language} />
           ))}
@@ -116,6 +254,41 @@ export const EduTrueFalseQuestionsPage = () => {
       )}
 
       <Pagination currentPage={currentPage} totalPages={totalPages} pageSize={pageSize} totalElements={totalElements} onPageChange={setCurrentPage} onPageSizeChange={handlePageSizeChange} />
+
+      {/* ───── Print Dialog ───── */}
+      {showPrintDialog && (
+        <div className="print-dialog-overlay" onClick={() => setShowPrintDialog(false)}>
+          <div className="print-dialog" onClick={(e) => e.stopPropagation()}>
+            <h3>{t('edu.print_options')}</h3>
+            <div className="print-options">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printOptions.showAnswer}
+                  onChange={(e) => setPrintOptions({ ...printOptions, showAnswer: e.target.checked })}
+                />
+                <span>{t('edu.answer')}</span>
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printOptions.showExplanation}
+                  onChange={(e) => setPrintOptions({ ...printOptions, showExplanation: e.target.checked })}
+                />
+                <span>{t('edu.explanation')}</span>
+              </label>
+            </div>
+            <div className="print-dialog-actions">
+              <button className="btn-secondary" onClick={() => setShowPrintDialog(false)}>
+                {t('edu.cancel')}
+              </button>
+              <button className="btn-primary" onClick={handlePrintExam}>
+                {t('vocabulary.print')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
