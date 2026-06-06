@@ -1,16 +1,22 @@
-import { type ChangeEvent, useCallback, useMemo, useState } from 'react'
+import { type ChangeEvent, type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Website } from '../../shared/data/types'
 import { useUIContext } from '../../shared/contexts/UIContext'
 import { useAppSettings } from '../../shared/contexts/AppSettings'
 import { useT } from '../../shared/i18n'
 import { usePagedFetch } from '../../shared/hooks/usePagedFetch'
-import { Pagination } from '../../shared/ui/Pagination'
 import { getWebsites } from './websitesApi'
 import { WebsiteCard } from './components/WebsiteCard'
-import { Toolbar } from '../../shared/components/Toolbar/Toolbar'
 import './websites.css'
 
 const normalizeText = (value: string) => value.toLowerCase()
+
+const tagPalette = ['#0f6fff', '#22a447', '#f97316', '#7c3aed', '#0891b2', '#db2777']
+
+const splitTags = (tags?: string) =>
+  (tags ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
 
 const matchesSearch = (website: Website, query: string) => {
   if (!query) {
@@ -27,158 +33,66 @@ const hasTag = (website: Website, tag: string | null) => {
     return true
   }
 
-  const tagList = (website.tags ?? '')
-    .split(',')
-    .map((item) => item.trim().toLowerCase())
-    .filter(Boolean)
-
-  return tagList.includes(tag.toLowerCase())
+  return splitTags(website.tags).some((item) => item.toLowerCase() === tag.toLowerCase())
 }
 
 type SortOrder = 'displayOrder' | 'alpha' | 'recent'
 
-const getLaneId = (tag: string) => `websites-lane-${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+const getLaneId = (tag: string) => `websites-section-${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+
+const getTagStyle = (index: number) =>
+  ({
+    '--tag-color': tagPalette[index % tagPalette.length],
+  }) as CSSProperties
 
 const CategoryIcon = ({ tag }: { tag: string }) => {
   const key = tag.toLowerCase()
 
-  if (key.includes('news')) {
+  if (key.includes('school')) {
     return (
-      <span className="websites-lane__icon websites-lane__icon--news" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M6 6.5h12v11H6z" />
-          <path d="M9 10h6M9 13h4" />
-        </svg>
-      </span>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 10.5 12 5l8 5.5v7.5h-4.5v-4h-7v4H4z" />
+        <path d="M9 18v-5h6v5M7 10v8M17 10v8" />
+      </svg>
     )
   }
 
-  if (key.includes('text')) {
+  if (key.includes('english') || key.includes('text')) {
     return (
-      <span className="websites-lane__icon websites-lane__icon--text" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M7 7h10M12 7v10M9 17h6" />
-        </svg>
-      </span>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 6h14M7 6v12M17 6v12M9 18h6" />
+        <path d="M9.5 13h5" />
+      </svg>
     )
   }
 
-  if (key.includes('image')) {
+  if (key.includes('tuition') || key.includes('learn')) {
     return (
-      <span className="websites-lane__icon websites-lane__icon--image" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M5.5 6.5h13v11h-13z" />
-          <path d="M7.5 15l3.2-3.2 2.2 2.2 1.4-1.4 2.2 2.4" />
-          <circle cx="9" cy="9.2" r="1" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('video')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--video" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M5.5 7h9.5v10H5.5z" />
-          <path d="M15 10l4-2.2v8.4L15 14z" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('audio')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--audio" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M9 17V7l8-1.5V15" />
-          <circle cx="7.5" cy="17" r="1.8" />
-          <circle cx="15.5" cy="15" r="1.8" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('code') || key.includes('api')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--code" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M9 8.5L5.5 12 9 15.5M15 8.5l3.5 3.5-3.5 3.5" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('model')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--model" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 5l6 3.5v7L12 19l-6-3.5v-7z" />
-          <path d="M12 12l6-3.5M12 12v7M12 12L6 8.5" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('agent')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--agent" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="9" r="3" />
-          <path d="M7 18a5 5 0 0110 0" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('studio') || key.includes('app')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--studio" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <rect x="6" y="6" width="12" height="12" rx="3" />
-          <path d="M9 10h6M9 14h4" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('open')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--open" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M8 16L16 8M11 8h5v5" />
-          <path d="M15 16H8V9" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (key.includes('directory')) {
-    return (
-      <span className="websites-lane__icon websites-lane__icon--directory" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M6.5 7.5h11M6.5 12h11M6.5 16.5h11" />
-        </svg>
-      </span>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m12 4 8 4-8 4-8-4z" />
+        <path d="M6.5 10.5v4.2c1.5 1.8 3.3 2.7 5.5 2.7s4-.9 5.5-2.7v-4.2" />
+      </svg>
     )
   }
 
   return (
-    <span className="websites-lane__icon websites-lane__icon--default" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="6" />
-        <path d="M12 9v6M9 12h6" />
-      </svg>
-    </span>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="5" y="5" width="6" height="6" rx="1.5" />
+      <rect x="13" y="5" width="6" height="6" rx="1.5" />
+      <rect x="5" y="13" width="6" height="6" rx="1.5" />
+      <rect x="13" y="13" width="6" height="6" rx="1.5" />
+    </svg>
   )
 }
 
 export const WebsitesPage = () => {
   const { language } = useUIContext()
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
   const { getTags } = useAppSettings()
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
-  const [expandedLanes, setExpandedLanes] = useState<Set<string>>(() => new Set())
   const sectionTags = getTags('website_tags')
   const t = useT()
 
@@ -188,73 +102,87 @@ export const WebsitesPage = () => {
     [],
   )
 
-  const {
-    items,
-    loading,
-    error,
-    currentPage,
-    setCurrentPage,
-    totalElements,
-    totalPages,
-    pageSize,
-    handlePageSizeChange,
-    skeletonItems,
-  } = usePagedFetch(fetcher, { initialPageSize: 500, skeletonCount: 30 })
+  const { items, loading, error, setCurrentPage, skeletonItems } = usePagedFetch(fetcher, {
+    initialPageSize: 500,
+    skeletonCount: 12,
+  })
+
+  const languageItems = useMemo(() => items.filter((item) => item.lang === language), [items, language])
+
+  const dynamicTags = useMemo(() => {
+    const tagCounts = new Map<string, number>()
+
+    languageItems.forEach((item) => {
+      splitTags(item.tags).forEach((tag) => {
+        tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1)
+      })
+    })
+
+    const orderedTags = [...sectionTags]
+    tagCounts.forEach((_count, tag) => {
+      if (!orderedTags.some((item) => item.toLowerCase() === tag.toLowerCase())) {
+        orderedTags.push(tag)
+      }
+    })
+
+    return orderedTags
+      .map((tag) => ({
+        tag,
+        count: tagCounts.get(tag) ?? 0,
+      }))
+      .filter((item) => item.count > 0)
+  }, [languageItems, sectionTags])
 
   const displayItems = useMemo(() => {
     const trimmedQuery = searchQuery.trim()
-    let filtered = items.filter((item) => item.lang === language)
-
-    if (trimmedQuery) {
-      filtered = filtered.filter((item) => matchesSearch(item, trimmedQuery))
-    }
+    let filtered = languageItems.filter((item) => matchesSearch(item, trimmedQuery))
 
     if (selectedTag) {
       filtered = filtered.filter((item) => hasTag(item, selectedTag))
     }
 
-    // Sort items
     switch (sortOrder) {
-      case 'displayOrder':
-        filtered.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-        break
       case 'alpha':
-        filtered.sort((a, b) =>
+        filtered = [...filtered].sort((a, b) =>
           a.name.localeCompare(b.name, language === 'ZH' ? 'zh-CN' : 'en', { sensitivity: 'base' }),
         )
         break
       case 'recent':
-        filtered.sort((a, b) => {
+        filtered = [...filtered].sort((a, b) => {
           const aTime = new Date(a.updatedAt ?? '').getTime()
           const bTime = new Date(b.updatedAt ?? '').getTime()
           return Number.isNaN(bTime - aTime) ? 0 : bTime - aTime
         })
         break
+      case 'displayOrder':
       default:
-        filtered.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+        filtered = [...filtered].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
         break
     }
 
     return filtered
-  }, [items, language, searchQuery, selectedTag, sortOrder])
+  }, [language, languageItems, searchQuery, selectedTag, sortOrder])
 
-  const isFilteredView = Boolean(searchQuery.trim() || selectedTag)
-
-  const categoryLanes = useMemo(
+  const categorySections = useMemo(
     () =>
-      sectionTags
-        .map((tag) => {
-          const laneItems = displayItems.filter((item) => hasTag(item, tag))
+      dynamicTags
+        .map((tagInfo) => {
+          const sectionItems = displayItems.filter((item) => hasTag(item, tagInfo.tag))
           return {
-            tag,
-            id: getLaneId(tag),
-            count: laneItems.length,
-            items: laneItems,
+            ...tagInfo,
+            id: getLaneId(tagInfo.tag),
+            items: sectionItems,
           }
         })
-        .filter((lane) => lane.items.length > 0),
-    [displayItems, sectionTags],
+        .filter((section) => section.items.length > 0),
+    [displayItems, dynamicTags],
   )
+
+  useEffect(() => {
+    if (searchOpen) {
+      searchInputRef.current?.focus()
+    }
+  }, [searchOpen])
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value)
@@ -263,69 +191,115 @@ export const WebsitesPage = () => {
 
   const handleClearSearch = () => {
     setSearchQuery('')
+    setSearchOpen(false)
     setCurrentPage(1)
+  }
+
+  const handleOpenSearch = () => {
+    setSearchOpen(true)
+    window.setTimeout(() => searchInputRef.current?.focus(), 0)
   }
 
   const handleSelectTag = (tag: string | null) => {
-    setSelectedTag(tag)
+    setSelectedTag((current) => (current === tag ? null : tag))
     setCurrentPage(1)
-  }
-
-  const handleToggleLane = (tag: string) => {
-    setExpandedLanes((current) => {
-      const next = new Set(current)
-      if (next.has(tag)) {
-        next.delete(tag)
-      } else {
-        next.add(tag)
-      }
-      return next
-    })
   }
 
   return (
     <section className="page websites-page">
-      <div className="websites-page__intro">
-        <div>
-          <h1 className="websites-page__title">{t('websites.title')}</h1>
-          <p className="websites-page__subtitle">{t('websites.subtitle')}</p>
-        </div>
-        <div className="websites-page__count">
-          <span className="websites-page__count-full">
-            {t('websites.result_count', { count: displayItems.length })}
-          </span>
-          <span
-            className="websites-page__count-compact"
-            aria-label={t('websites.result_count', { count: displayItems.length })}
+      <div className="websites-hero">
+        <img
+          src={`${import.meta.env.BASE_URL}rubi-websites-banner.png`}
+          alt={t('websites.banner_alt')}
+          className="websites-hero__image"
+        />
+      </div>
+
+      <div
+        className={`websites-toolbar${searchOpen || searchQuery ? ' websites-toolbar--search-open' : ''}`}
+        aria-label={t('websites.toolbar_label')}
+      >
+        {searchOpen || searchQuery ? (
+          <label className="websites-toolbar__search">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m20 20-3.5-3.5M16 10.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z" />
+            </svg>
+            <span className="sr-only">{t('websites.search_placeholder')}</span>
+            <input
+              ref={searchInputRef}
+              type="search"
+              value={searchQuery}
+              placeholder={t('websites.search_placeholder')}
+              onChange={handleSearchChange}
+            />
+            <button type="button" onClick={handleClearSearch} aria-label={t('websites.search_clear')}>
+              ×
+            </button>
+          </label>
+        ) : null}
+
+        <div className="websites-toolbar__tags" aria-label={t('websites.tags_filter')}>
+          <button
+            type="button"
+            className={`websites-tag-chip${selectedTag === null ? ' websites-tag-chip--active' : ''}`}
+            onClick={() => handleSelectTag(null)}
           >
-            {displayItems.length}
-          </span>
+            {t('websites.filters.all')}
+            <span>{languageItems.length}</span>
+          </button>
+          {dynamicTags.map((tagInfo, index) => (
+            <button
+              key={tagInfo.tag}
+              type="button"
+              className={`websites-tag-chip${selectedTag === tagInfo.tag ? ' websites-tag-chip--active' : ''}`}
+              style={getTagStyle(index)}
+              onClick={() => handleSelectTag(tagInfo.tag)}
+            >
+              {tagInfo.tag}
+              <span>{tagInfo.count}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="websites-toolbar__actions">
+          <button
+            type="button"
+            className={`websites-toolbar__icon-button${searchOpen || searchQuery ? ' websites-toolbar__icon-button--active' : ''}`}
+            onClick={handleOpenSearch}
+            aria-label={t('websites.search_placeholder')}
+            aria-expanded={searchOpen || Boolean(searchQuery)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m20 20-3.5-3.5M16 10.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z" />
+            </svg>
+          </button>
+
+          <label className="websites-toolbar__sort">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M7 12h10M10 17h4" />
+            </svg>
+            <select
+              aria-label={t('websites.sort_label')}
+              value={sortOrder}
+              onChange={(event) => setSortOrder(event.target.value as SortOrder)}
+            >
+              <option value="displayOrder">{t('websites.sort.displayOrder')}</option>
+              <option value="alpha">{t('websites.sort.alpha')}</option>
+              <option value="recent">{t('websites.sort.recency')}</option>
+            </select>
+          </label>
         </div>
       </div>
 
-      <Toolbar
-        sectionTags={sectionTags}
-        selectedTag={selectedTag}
-        onSelectTag={handleSelectTag}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
-        onClearSearch={handleClearSearch}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
-        namespace="websites"
-      />
-
       {loading ? (
-        <div className="grid grid--websites">
+        <div className="websites-grid websites-grid--skeleton">
           {skeletonItems.map((item) => (
             <div key={item} className="card website-card website-card--skeleton" aria-hidden="true">
               <div className="website-card__layout">
-                <div className="website-card__logo">
-                  <div className="skeleton skeleton--image" />
-                </div>
+                <div className="website-card__logo skeleton" />
                 <div className="website-card__content">
                   <div className="skeleton skeleton--line skeleton--line-lg" />
-                  <div className="website-card__description skeleton skeleton--line skeleton--line-sm" />
+                  <div className="skeleton skeleton--line skeleton--line-sm" />
                 </div>
               </div>
             </div>
@@ -341,80 +315,52 @@ export const WebsitesPage = () => {
       ) : null}
 
       {!loading && !error ? (
-        <>
-          {!isFilteredView && categoryLanes.length > 0 ? (
-            <div className="websites-lanes" aria-label={t('websites.category_lanes')}>
-              {categoryLanes.map((lane) => {
-                const isExpanded = expandedLanes.has(lane.tag)
+        <div className="websites-content">
+          {categorySections.length > 0 ? (
+            <div className="websites-sections" aria-label={t('websites.category_lanes')}>
+              {categorySections.map((section, index) => (
+                <section key={section.tag} className="websites-section" aria-labelledby={section.id}>
+                  <div className="websites-section__header">
+                    <h2 id={section.id} className="websites-section__title">
+                      <span className="websites-section__icon" style={getTagStyle(index)} aria-hidden="true">
+                        <CategoryIcon tag={section.tag} />
+                      </span>
+                      {section.tag}
+                      <span className="websites-section__count">{section.items.length}</span>
+                    </h2>
+                    <button
+                      type="button"
+                      className="websites-section__view-all"
+                      onClick={() => handleSelectTag(section.tag)}
+                    >
+                      {t('websites.view_all')}
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="websites-grid">
+                    {section.items.slice(0, selectedTag ? undefined : 4).map((item) => (
+                      <WebsiteCard key={`${section.tag}-${item.id}`} website={item} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : null}
 
-                return (
-                  <section
-                    key={lane.tag}
-                    className={`websites-lane${isExpanded ? ' websites-lane--expanded' : ''}`}
-                    aria-labelledby={lane.id}
-                  >
-                    <div className="websites-lane__header">
-                      <div>
-                        <h2 id={lane.id} className="websites-lane__title">
-                          <span className="websites-lane__icon">
-                            <CategoryIcon tag={lane.tag} />
-                          </span>
-                          {lane.tag}
-                        </h2>
-                      </div>
-                      <button
-                        type="button"
-                        className="websites-lane__view-all"
-                        onClick={() => handleToggleLane(lane.tag)}
-                        aria-expanded={isExpanded}
-                        aria-controls={`${lane.id}-track`}
-                        aria-label={t(isExpanded ? 'websites.collapse_category' : 'websites.expand_category', {
-                          category: lane.tag,
-                          count: lane.count,
-                        })}
-                      >
-                        <span>{lane.count}</span>
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          {isExpanded ? <path d="M6 15l6-6 6 6" /> : <path d="M6 9l6 6 6-6" />}
-                        </svg>
-                      </button>
-                    </div>
-                    <div id={`${lane.id}-track`} className="websites-lane__track">
-                      {lane.items.map((item) => (
-                        <div key={`${lane.tag}-${item.id}`} className="websites-lane__item">
-                          <WebsiteCard website={item} />
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )
-              })}
+          {displayItems.length === 0 ? (
+            <div className="status status--empty">
+              <span>{t('websites.empty')}</span>
             </div>
-          ) : (
-            <div className="websites-results">
-              <div className="websites-results__header">
-                <h2 className="websites-results__title">{t('websites.results_title')}</h2>
-                <span className="websites-results__count">
-                  {t('websites.result_count', { count: displayItems.length })}
-                </span>
-              </div>
-              <div className="grid grid--websites">
-                {displayItems.map((item) => (
-                  <WebsiteCard key={item.id} website={item} />
-                ))}
-              </div>
+          ) : null}
+
+          {displayItems.length > 0 ? (
+            <div className="websites-page__summary" aria-live="polite">
+              {t('websites.range_summary', { start: 1, end: displayItems.length, total: displayItems.length })}
             </div>
-          )}
-          {displayItems.length === 0 ? <div className="status status--empty">{t('websites.empty')}</div> : null}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalElements={totalElements}
-            pageSize={pageSize}
-            onPageSizeChange={handlePageSizeChange}
-          />
-        </>
+          ) : null}
+        </div>
       ) : null}
     </section>
   )

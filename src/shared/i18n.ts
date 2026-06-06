@@ -7,6 +7,7 @@ import imagesTranslations from '../pages/Images/i18n'
 import audiosTranslations from '../pages/Audios/i18n'
 import videosTranslations from '../pages/Videos/i18n'
 import filesTranslations from '../pages/Files/i18n'
+import eduTranslations from '../pages/Edu/i18n'
 
 type Lang = 'EN' | 'ZH'
 
@@ -32,6 +33,8 @@ const baseTranslations: Translations = {
   'nav.audios': { EN: 'Audios', ZH: '音频' },
   'nav.videos': { EN: 'Videos', ZH: '视频' },
   'nav.files': { EN: 'Files', ZH: '文件' },
+  'nav.media': { EN: 'Media', ZH: '媒体' },
+  'nav.content': { EN: 'Content', ZH: '内容' },
 
   // Toggles
   'toggle.theme.light': { EN: 'Switch to light', ZH: '切换到日间' },
@@ -71,6 +74,7 @@ const translations: Translations = {
   ...audiosTranslations,
   ...videosTranslations,
   ...filesTranslations,
+  ...eduTranslations,
 }
 
 export const useT = () => {

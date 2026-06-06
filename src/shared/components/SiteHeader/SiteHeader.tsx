@@ -7,7 +7,7 @@ import { ThemeColorPicker } from '../../ui/ThemeColorPicker'
 import { ThemeToggle } from '../../ui/ThemeToggle'
 import { MenuIcon } from './MenuIcon'
 import { SectionIcon } from './sectionIcons'
-import { siteHeaderLinks } from './siteHeaderLinks'
+import { siteHeaderGroups, siteHeaderLinks, type SiteHeaderLink } from './siteHeaderLinks'
 
 export const SiteHeader = () => {
   const location = useLocation()
@@ -26,6 +26,40 @@ export const SiteHeader = () => {
       document.body.style.overflow = ''
     }
   }, [mobileMenuOpen])
+
+  const renderDesktopLink = (link: SiteHeaderLink) => {
+    const tags = getTags(link.tagsKey)
+    return (
+      <NavLink
+        key={link.path}
+        to={link.path}
+        className={({ isActive }) => `section-link${isActive ? ' section-link--active' : ''}`}
+        title={tags.length > 0 ? tags.join(', ') : undefined}
+      >
+        <span className="section-link__icon" aria-hidden>
+          <SectionIcon tagsKey={link.tagsKey} />
+        </span>
+        <span className="section-link__label">{t(link.labelKey)}</span>
+      </NavLink>
+    )
+  }
+
+  const renderMobileLink = (link: SiteHeaderLink) => {
+    const tags = getTags(link.tagsKey)
+    return (
+      <NavLink
+        key={link.path}
+        to={link.path}
+        className={({ isActive }) => `mobile-menu__link${isActive ? ' mobile-menu__link--active' : ''}`}
+        title={tags.length > 0 ? tags.join(', ') : undefined}
+      >
+        <span className="mobile-menu__icon" aria-hidden>
+          <SectionIcon tagsKey={link.tagsKey} />
+        </span>
+        <span className="mobile-menu__label">{t(link.labelKey)}</span>
+      </NavLink>
+    )
+  }
 
   return (
     <>
@@ -48,20 +82,22 @@ export const SiteHeader = () => {
         </NavLink>
 
         <nav className="site-header__sections" aria-label="Main navigation">
-          {siteHeaderLinks.map((link) => {
-            const tags = getTags(link.tagsKey)
+          {siteHeaderLinks.map(renderDesktopLink)}
+          {siteHeaderGroups.map((group) => {
+            const isActive = group.links.some((link) => location.pathname.startsWith(link.path))
             return (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className={({ isActive }) => `section-link${isActive ? ' section-link--active' : ''}`}
-                title={tags.length > 0 ? tags.join(', ') : undefined}
-              >
-                <span className="section-link__icon" aria-hidden>
-                  <SectionIcon tagsKey={link.tagsKey} />
-                </span>
-                <span className="section-link__label">{t(link.labelKey)}</span>
-              </NavLink>
+              <div key={group.labelKey} className="section-group">
+                <button type="button" className={`section-link section-group__button${isActive ? ' section-link--active' : ''}`}>
+                  <span className="section-link__icon" aria-hidden>
+                    <SectionIcon tagsKey={group.tagsKey} />
+                  </span>
+                  <span className="section-link__label">{t(group.labelKey)}</span>
+                  <span className="section-group__chevron" aria-hidden>⌄</span>
+                </button>
+                <div className="section-group__menu">
+                  {group.links.map(renderDesktopLink)}
+                </div>
+              </div>
             )
           })}
         </nav>
@@ -78,22 +114,21 @@ export const SiteHeader = () => {
           <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
           <nav className="mobile-menu" aria-label="Mobile navigation">
             <div className="mobile-menu__content">
-              {siteHeaderLinks.map((link) => {
-                const tags = getTags(link.tagsKey)
-                return (
-                  <NavLink
-                    key={link.path}
-                    to={link.path}
-                    className={({ isActive }) => `mobile-menu__link${isActive ? ' mobile-menu__link--active' : ''}`}
-                    title={tags.length > 0 ? tags.join(', ') : undefined}
-                  >
+              {siteHeaderGroups.map((group) => (
+                <div key={group.labelKey} className="mobile-menu__group">
+                  <div className="mobile-menu__group-title">
                     <span className="mobile-menu__icon" aria-hidden>
-                      <SectionIcon tagsKey={link.tagsKey} />
+                      <SectionIcon tagsKey={group.tagsKey} />
                     </span>
-                    <span className="mobile-menu__label">{t(link.labelKey)}</span>
-                  </NavLink>
-                )
-              })}
+                    {t(group.labelKey)}
+                  </div>
+                  {group.links.map(renderMobileLink)}
+                </div>
+              ))}
+              <div className="mobile-menu__group">
+                <div className="mobile-menu__group-title">{t('nav.content')}</div>
+                {siteHeaderLinks.map(renderMobileLink)}
+              </div>
             </div>
           </nav>
         </>

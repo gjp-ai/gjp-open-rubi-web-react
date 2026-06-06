@@ -14,6 +14,14 @@ const ImagesPage = lazy(() => import('../pages/Images/ImagesPage').then((m) => (
 const AudiosPage = lazy(() => import('../pages/Audios/AudiosPage').then((m) => ({ default: m.AudiosPage })))
 const VideosPage = lazy(() => import('../pages/Videos/VideosPage').then((m) => ({ default: m.VideosPage })))
 const FilesPage = lazy(() => import('../pages/Files/FilesPage').then((m) => ({ default: m.FilesPage })))
+const EduVocabulariesPage = lazy(() => import('../pages/Edu/VocabulariesPage').then((m) => ({ default: m.EduVocabulariesPage })))
+const EduPhrasesPage = lazy(() => import('../pages/Edu/PhrasesPage').then((m) => ({ default: m.EduPhrasesPage })))
+const EduSentencesPage = lazy(() => import('../pages/Edu/SentencesPage').then((m) => ({ default: m.EduSentencesPage })))
+const EduMultipleChoiceQuestionsPage = lazy(() => import('../pages/Edu/MultipleChoiceQuestionsPage').then((m) => ({ default: m.EduMultipleChoiceQuestionsPage })))
+const EduFillBlankQuestionsPage = lazy(() => import('../pages/Edu/FillBlankQuestionsPage').then((m) => ({ default: m.EduFillBlankQuestionsPage })))
+const EduFreeTextQuestionsPage = lazy(() => import('../pages/Edu/FreeTextQuestionsPage').then((m) => ({ default: m.EduFreeTextQuestionsPage })))
+const EduTrueFalseQuestionsPage = lazy(() => import('../pages/Edu/TrueFalseQuestionsPage').then((m) => ({ default: m.EduTrueFalseQuestionsPage })))
+const EduQuestionImagesPage = lazy(() => import('../pages/Edu/QuestionImagesPage').then((m) => ({ default: m.EduQuestionImagesPage })))
 
 export const router = createBrowserRouter(
   [
@@ -57,6 +65,14 @@ export const router = createBrowserRouter(
           path: '/files',
           element: <FilesPage />,
         },
+        { path: '/edu/vocabularies', element: <EduVocabulariesPage /> },
+        { path: '/edu/phrases', element: <EduPhrasesPage /> },
+        { path: '/edu/sentences', element: <EduSentencesPage /> },
+        { path: '/edu/multiple-choice-questions', element: <EduMultipleChoiceQuestionsPage /> },
+        { path: '/edu/fill-blank-questions', element: <EduFillBlankQuestionsPage /> },
+        { path: '/edu/free-text-questions', element: <EduFreeTextQuestionsPage /> },
+        { path: '/edu/true-false-questions', element: <EduTrueFalseQuestionsPage /> },
+        { path: '/edu/question-images', element: <EduQuestionImagesPage /> },
       ],
     },
     {

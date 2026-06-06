@@ -1,0 +1,239 @@
+.edu-page {
+  gap: 1.25rem;
+}
+
+.edu-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  padding: 1.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.edu-hero h1 {
+  margin: 0;
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+}
+
+.edu-hero p {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+}
+
+.edu-hero__count {
+  text-align: right;
+  color: var(--color-muted);
+}
+
+.edu-hero__count strong {
+  display: block;
+  color: var(--color-primary);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.edu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.edu-card,
+.edu-question-card,
+.edu-image-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.edu-card {
+  padding: 1rem;
+  min-height: 220px;
+}
+
+.edu-card--skeleton {
+  min-height: 180px;
+}
+
+.edu-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.edu-card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.edu-audio {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.edu-phonetic,
+.edu-rich,
+.edu-example {
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.edu-pill,
+.edu-tags span,
+.edu-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.edu-card__meta,
+.edu-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.edu-tags span {
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+}
+
+.edu-question-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.edu-question-card {
+  padding: 1rem;
+}
+
+.edu-question-card__question {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.edu-question-images {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.edu-question-images img {
+  max-height: 180px;
+  width: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.edu-options {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+}
+
+.edu-option {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  padding: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.edu-option strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+
+.edu-option--correct {
+  border-color: var(--color-status-success);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.edu-option--wrong {
+  border-color: var(--color-status-error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.edu-answer-toggle {
+  margin-top: 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  padding: 0.55rem 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edu-answer {
+  margin-top: 0.8rem;
+  padding: 0.8rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+}
+
+.edu-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.edu-image-card {
+  overflow: hidden;
+}
+
+.edu-image-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.edu-image-card span {
+  display: block;
+  padding: 0.6rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 720px) {
+  .edu-hero {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .edu-hero__count {
+    text-align: left;
+  }
+}

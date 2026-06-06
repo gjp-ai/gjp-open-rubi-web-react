@@ -11,7 +11,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         // target: 'https://www.ganjianping.com',
-        target: 'http://localhost:8084',
+        target: 'http://localhost:8083',
         changeOrigin: true,
         secure: false,
         configure: (proxy) => {

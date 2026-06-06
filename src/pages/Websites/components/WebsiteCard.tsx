@@ -33,25 +33,33 @@ export const WebsiteCard = ({ website }: WebsiteCardProps) => {
 
   const cardBody = (
     <div className="website-card__layout">
-      <div className="website-card__main">
-        <div className="website-card__logo" aria-hidden={!hasLogo}>
-          {hasLogo ? (
-            <img src={safeLogoUrl} alt={website.name} loading="lazy" onError={() => setImageError(true)} />
-          ) : (
-            <DefaultLogoIcon />
-          )}
-        </div>
-        <div className="website-card__content">
+      <div className="website-card__logo" aria-hidden={!hasLogo}>
+        {hasLogo ? (
+          <img src={safeLogoUrl} alt={website.name} loading="lazy" onError={() => setImageError(true)} />
+        ) : (
+          <DefaultLogoIcon />
+        )}
+      </div>
+      <div className="website-card__content">
+        <div className="website-card__heading">
           <h3 className="website-card__title" title={website.name}>
             {website.name}
           </h3>
-          {description ? (
-            <p className="website-card__description" title={description}>
-              {description}
-            </p>
-          ) : null}
         </div>
+        {description ? (
+          <p className="website-card__description" title={description}>
+            {description}
+          </p>
+        ) : null}
       </div>
+      {safeWebsiteUrl ? (
+        <span className="website-card__external" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 5h5v5M19 5l-8 8" />
+            <path d="M18 14v5H5V6h5" />
+          </svg>
+        </span>
+      ) : null}
     </div>
   )
 
