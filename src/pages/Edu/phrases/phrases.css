@@ -1,0 +1,889 @@
+.phrases-page .edu-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+}
+
+.phrases-page .edu-hero h1 {
+  margin: 0 0 0.35rem;
+}
+
+.phrases-page .edu-hero p,
+.phrases-page .edu-hero__count span {
+  color: var(--text-secondary);
+}
+
+.phrases-page .edu-hero__count {
+  display: grid;
+  place-items: center;
+  min-width: 108px;
+  border-left: 1px solid var(--border-color);
+}
+
+.phrases-page .edu-hero__count strong {
+  font-size: 2rem;
+}
+
+.phrases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin: 1.25rem 0;
+}
+
+.phrase-card {
+  min-height: 180px;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.phrase-card.compact {
+  min-height: 96px;
+  justify-content: center;
+}
+
+.phrase-card__phonetic {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.edu-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.edu-page-action,
+.edu-print-option {
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.edu-page-action {
+  cursor: pointer;
+}
+
+.edu-page-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.phrase-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.phrase-detail-modal {
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.25);
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0;
+}
+
+.detail-action-btn,
+.detail-audio-btn,
+.toggle-btn,
+.detail-nav-btn {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.detail-content {
+  padding: 1rem 1.5rem 4rem;
+}
+
+.detail-word {
+  margin: 0 0 0.75rem;
+  font-size: 2rem;
+}
+
+.detail-phonetic-row,
+.detail-meta-info,
+.detail-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.phrase-detail-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.detail-html {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.detail-tag,
+.detail-difficulty,
+.detail-meta-item {
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+}
+
+.detail-navigation {
+  position: sticky;
+  bottom: 0;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.phrase-card .edu-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.phrase-card h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.phrase-card .edu-audio {
+  border: 0;
+  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  background: var(--primary-color);
+  color: #fff;
+  cursor: pointer;
+}
+
+.phrase-card .edu-phonetic,
+.phrase-card .edu-rich--muted,
+.phrase-card .edu-card__meta {
+  color: var(--text-secondary);
+}
+
+.phrase-card .edu-pill {
+  align-self: flex-start;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
+.phrase-card .edu-example {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border-color);
+  color: var(--text-secondary);
+}
+
+.phrase-card .edu-card__meta,
+.phrase-card .edu-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.phrase-card .edu-tags span {
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: var(--bg-primary);
+}
+
+.phrase-card--skeleton {
+  min-height: 180px;
+}
+
+/* Vocabulary-style phrase experience */
+.phrase-card {
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.phrase-card:hover,
+.phrase-card:focus-visible {
+  border-color: #b8c0cc;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+  outline: none;
+}
+
+.phrase-card__phonetics {
+  display: grid;
+  gap: 4px;
+}
+
+.phrase-card__phonetic {
+  gap: 0.4rem;
+  font-family: "Times New Roman", serif;
+  font-style: italic;
+}
+
+.phrase-card__phonetic-label {
+  min-width: 24px;
+  color: #687082;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.phrase-card .edu-audio {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+}
+
+.phrase-card .edu-audio svg {
+  width: 18px;
+  height: 18px;
+}
+
+.phrase-detail-overlay {
+  z-index: 2000;
+  background: rgba(17, 24, 39, 0.52);
+  backdrop-filter: blur(2px);
+}
+
+.phrase-detail-modal--learning {
+  width: min(880px, calc(100vw - 48px));
+  max-height: min(86vh, 860px);
+  overflow: auto;
+  border: 1px solid #d9dee7;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fbff 0, #fff 210px), #fff;
+  color: #111827;
+  outline: none;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.phrase-detail-modal--learning:focus {
+  outline: none;
+}
+
+.phrase-detail-modal--learning .detail-actions {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  justify-content: flex-end;
+  padding: 14px 16px 0;
+  background: linear-gradient(#fff 72%, rgba(255, 255, 255, 0));
+}
+
+.phrase-detail-modal--learning .detail-action-btn,
+.phrase-detail-modal--learning .detail-audio-btn,
+.phrase-detail-modal--learning .toggle-btn,
+.phrase-detail-modal--learning .detail-nav-btn {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d9dee7;
+  background: #fff;
+  color: #172033;
+}
+
+.phrase-detail-modal--learning .detail-close-btn {
+  border-color: #f0d8dc;
+  background: #fff6f7;
+  color: #9f1239;
+}
+
+.phrase-detail-modal--learning .detail-action-btn,
+.phrase-detail-modal--learning .detail-nav-btn {
+  width: 38px;
+  height: 38px;
+}
+
+.phrase-detail-modal--learning .detail-action-btn svg,
+.phrase-detail-modal--learning .detail-nav-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+.phrase-detail-modal--learning .detail-content {
+  padding: 0 34px 30px;
+}
+
+.phrase-detail-modal--learning .detail-hero {
+  margin-bottom: 18px;
+  padding: 2px 0 22px;
+  border-bottom: 1px solid #e4e9f1;
+}
+
+.phrase-detail-modal--learning .detail-eyebrow {
+  margin: 0 0 8px;
+  color: #5b64f4;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.phrase-detail-modal--learning .detail-word {
+  color: #111827;
+  font-size: 32px;
+  line-height: 1.25;
+}
+
+.phrase-detail-modal--learning .detail-pronunciation-list,
+.phrase-detail-modal--learning .detail-meta-info--row,
+.phrase-detail-modal--learning .detail-autoplay-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.phrase-detail-modal--learning .detail-pronunciation-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 7px 9px 7px 12px;
+  border: 1px solid #dfe5ef;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.phrase-detail-modal--learning .detail-pronunciation-label {
+  color: #5b64f4;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.phrase-detail-modal--learning .detail-audio-btn--large {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #eef1ff;
+  color: #5661ff;
+}
+
+.phrase-detail-modal--learning .detail-section-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.phrase-detail-modal--learning .phrase-detail-section {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+}
+
+.phrase-detail-modal--learning .section-header {
+  align-items: center;
+  padding: 14px 16px;
+  background: #fbfcff;
+}
+
+.phrase-detail-modal--learning .detail-section-body {
+  padding: 0 16px 16px;
+}
+
+.phrase-detail-modal--learning .detail-meta-info--row {
+  margin: 0 0 20px;
+}
+
+.phrase-detail-modal--learning .detail-tag,
+.phrase-detail-modal--learning .detail-difficulty,
+.phrase-detail-modal--learning .detail-meta-item {
+  border: 1px solid #e3e8f0;
+  background: #f8fafc;
+  color: #374151;
+  font-weight: 700;
+}
+
+.phrase-detail-modal--learning .detail-navigation {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(rgba(255, 255, 255, 0), #fff 36%);
+  pointer-events: auto;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-controls {
+  flex: 1;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-toggle,
+.phrase-detail-modal--learning .detail-autoplay-segment {
+  border: 1px solid #dfe5ef;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  pointer-events: auto;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-toggle {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-toggle.active {
+  color: #2832c2;
+  border-color: #cdd5ff;
+  background: #f3f5ff;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-switch {
+  width: 34px;
+  height: 20px;
+  position: relative;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-toggle.active .detail-autoplay-switch {
+  background: #5661ff;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-toggle.active .detail-autoplay-switch::after {
+  transform: translateX(14px);
+}
+
+.phrase-detail-modal--learning .detail-autoplay-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-segmented {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 44px);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #dfe5ef;
+  border-radius: 999px;
+  background: #f8fafc;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-segment {
+  min-height: 28px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.phrase-detail-modal--learning .detail-autoplay-segment.active {
+  background: #5661ff;
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .phrase-detail-modal--learning {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+  }
+
+  .phrase-detail-modal--learning .detail-content {
+    padding: 0 16px 22px;
+  }
+
+  .phrase-detail-modal--learning .detail-word {
+    font-size: 26px;
+  }
+}
+
+/* Screenshot-aligned phrase list */
+.phrases-page {
+  max-width: none;
+  padding: 18px 8px 28px;
+}
+
+.phrases-page .vocab-toolbar {
+  margin-bottom: 18px;
+  padding: 16px 20px;
+  border: 1px solid #d5dbe4;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+}
+
+.phrases-page .vocab-toolbar__top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.phrases-page .vocab-toolbar__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.phrases-page .vocab-toolbar__title h1 {
+  margin: 0;
+  color: #111418;
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.phrases-page .vocab-toolbar__title span {
+  color: #555960;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.phrases-page .vocab-toolbar__chips {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 0;
+  scrollbar-width: none;
+}
+
+.phrases-page .vocab-toolbar__chips::-webkit-scrollbar {
+  display: none;
+}
+
+.phrases-page .vocab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid #d3d8e1;
+  border-radius: 999px;
+  background: #fbfcfd;
+  color: #44474d;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.phrases-page .vocab-chip.active {
+  border-color: #5a64ff;
+  color: #1f2aff;
+}
+
+.phrases-page .vocab-chip svg {
+  width: 16px;
+  height: 16px;
+}
+
+.phrases-page .vocab-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding-left: 18px;
+  border-left: 1px solid #d3d8e1;
+}
+
+.phrases-page .vocab-action {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #d3d8e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #000;
+  cursor: pointer;
+}
+
+.phrases-page .vocab-action svg {
+  width: 21px;
+  height: 21px;
+}
+
+.phrases-page .vocab-action.active {
+  border-color: #5961ff;
+  background: #5b61f4;
+  color: #0b0b0b;
+  box-shadow: 0 5px 13px rgba(91, 97, 244, 0.35);
+}
+
+.phrases-page .vocab-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.phrases-page .vocab-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e6ee;
+}
+
+.phrases-page .vocab-filter-grid__search {
+  grid-column: span 2;
+}
+
+.phrases-page .vocab-filter-grid label {
+  display: grid;
+  gap: 0.35rem;
+  color: #555960;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.phrases-page .vocab-filter-grid input,
+.phrases-page .vocab-filter-grid select {
+  min-height: 40px;
+  border: 1px solid #d3d8e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #111418;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+}
+
+.phrases-page .interval-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(17, 24, 39, 0.52);
+  backdrop-filter: blur(2px);
+}
+
+.phrases-page .interval-modal {
+  width: min(360px, calc(100vw - 48px));
+  padding: 1.5rem;
+  border: 1px solid #d9dee7;
+  border-radius: 16px;
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.phrases-page .interval-modal h3 {
+  margin: 0 0 0.5rem;
+}
+
+.phrases-page .interval-modal p {
+  margin: 0 0 1rem;
+  color: #475569;
+}
+
+.phrases-page .interval-options {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.phrases-page .interval-btn,
+.phrases-page .interval-cancel-btn {
+  min-height: 42px;
+  border: 1px solid #d3d8e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #111827;
+  cursor: pointer;
+  font: inherit;
+}
+
+.phrases-page .interval-btn:hover {
+  border-color: #5b61f4;
+  color: #2832c2;
+}
+
+.phrases-page .interval-cancel-btn {
+  width: 100%;
+  background: transparent;
+}
+
+.phrases-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 0 0 24px;
+}
+
+.phrase-card {
+  min-height: 132px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #d6dbe3;
+  border-radius: 12px;
+  background: #fbfcfd;
+  text-align: center;
+  box-shadow: none;
+}
+
+.phrase-card.compact {
+  min-height: 112px;
+}
+
+.phrase-card h2 {
+  margin: 0;
+  color: #111418;
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.phrase-card__phonetics {
+  gap: 3px;
+}
+
+.phrase-card__phonetic {
+  justify-content: center;
+  min-height: 20px;
+  color: #5a5c61;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.phrase-card__phonetic-label {
+  min-width: 20px;
+  font-size: 11px;
+}
+
+.phrase-card .edu-audio {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  color: #5864ff;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.phrase-card .edu-audio svg {
+  width: 21px;
+  height: 21px;
+}
+
+.phrase-card--skeleton {
+  min-height: 132px;
+}
+
+@media (min-width: 1440px) {
+  .phrases-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1500px) {
+  .phrases-page .vocab-toolbar__top {
+    grid-template-columns: 1fr;
+  }
+
+  .phrases-page .vocab-actions {
+    width: 100%;
+    padding-left: 0;
+    padding-top: 12px;
+    border-left: 0;
+    border-top: 1px solid #d3d8e1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .phrases-page .vocab-toolbar__title h1 {
+    font-size: 22px;
+  }
+
+  .phrases-page .vocab-toolbar__title span {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .phrases-page {
+    padding: 12px 8px 20px;
+  }
+
+  .phrases-page .vocab-toolbar {
+    margin-bottom: 18px;
+    padding: 14px;
+  }
+
+  .phrases-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .phrase-card h2 {
+    font-size: 22px;
+  }
+}

@@ -4,24 +4,24 @@ import { PublicLayout } from './layouts/PublicLayout'
 import { NotFoundPage } from '../shared/components/NotFoundPage'
 
 // Lazy-loaded page components for route-level code splitting
-const WebsitesPage = lazy(() => import('../pages/Websites/WebsitesPage').then((m) => ({ default: m.WebsitesPage })))
-const QuestionsPage = lazy(() => import('../pages/Questions/QuestionsPage').then((m) => ({ default: m.QuestionsPage })))
-const ArticlesPage = lazy(() => import('../pages/Articles/ArticlesPage').then((m) => ({ default: m.ArticlesPage })))
+const WebsitesPage = lazy(() => import('../pages/cms/websites/WebsitesPage').then((m) => ({ default: m.WebsitesPage })))
+const QuestionsPage = lazy(() => import('../pages/cms/questions/QuestionsPage').then((m) => ({ default: m.QuestionsPage })))
+const ArticlesPage = lazy(() => import('../pages/cms/articles/ArticlesPage').then((m) => ({ default: m.ArticlesPage })))
 const ArticleDetailPage = lazy(() =>
-  import('../pages/Articles/ArticleDetailPage').then((m) => ({ default: m.ArticleDetailPage })),
+  import('../pages/cms/articles/ArticleDetailPage').then((m) => ({ default: m.ArticleDetailPage })),
 )
-const ImagesPage = lazy(() => import('../pages/Images/ImagesPage').then((m) => ({ default: m.ImagesPage })))
-const AudiosPage = lazy(() => import('../pages/Audios/AudiosPage').then((m) => ({ default: m.AudiosPage })))
-const VideosPage = lazy(() => import('../pages/Videos/VideosPage').then((m) => ({ default: m.VideosPage })))
-const FilesPage = lazy(() => import('../pages/Files/FilesPage').then((m) => ({ default: m.FilesPage })))
-const EduVocabulariesPage = lazy(() => import('../pages/Edu/VocabulariesPage').then((m) => ({ default: m.EduVocabulariesPage })))
-const EduPhrasesPage = lazy(() => import('../pages/Edu/PhrasesPage').then((m) => ({ default: m.EduPhrasesPage })))
-const EduSentencesPage = lazy(() => import('../pages/Edu/SentencesPage').then((m) => ({ default: m.EduSentencesPage })))
-const EduMultipleChoiceQuestionsPage = lazy(() => import('../pages/Edu/MultipleChoiceQuestionsPage').then((m) => ({ default: m.EduMultipleChoiceQuestionsPage })))
-const EduFillBlankQuestionsPage = lazy(() => import('../pages/Edu/FillBlankQuestionsPage').then((m) => ({ default: m.EduFillBlankQuestionsPage })))
-const EduFreeTextQuestionsPage = lazy(() => import('../pages/Edu/FreeTextQuestionsPage').then((m) => ({ default: m.EduFreeTextQuestionsPage })))
-const EduTrueFalseQuestionsPage = lazy(() => import('../pages/Edu/TrueFalseQuestionsPage').then((m) => ({ default: m.EduTrueFalseQuestionsPage })))
-const EduQuestionImagesPage = lazy(() => import('../pages/Edu/QuestionImagesPage').then((m) => ({ default: m.EduQuestionImagesPage })))
+const ImagesPage = lazy(() => import('../pages/cms/images/ImagesPage').then((m) => ({ default: m.ImagesPage })))
+const AudiosPage = lazy(() => import('../pages/cms/audios/AudiosPage').then((m) => ({ default: m.AudiosPage })))
+const VideosPage = lazy(() => import('../pages/cms/videos/VideosPage').then((m) => ({ default: m.VideosPage })))
+const FilesPage = lazy(() => import('../pages/cms/files/FilesPage').then((m) => ({ default: m.FilesPage })))
+const EduVocabulariesPage = lazy(() => import('../pages/edu/vocabularies/VocabulariesPage').then((m) => ({ default: m.EduVocabulariesPage })))
+const EduPhrasesPage = lazy(() => import('../pages/edu/phrases/PhrasesPage').then((m) => ({ default: m.EduPhrasesPage })))
+const EduSentencesPage = lazy(() => import('../pages/edu/sentences/SentencesPage').then((m) => ({ default: m.EduSentencesPage })))
+const EduMultipleChoiceQuestionsPage = lazy(() => import('../pages/edu/multiple-choice-questions/MultipleChoiceQuestionsPage').then((m) => ({ default: m.EduMultipleChoiceQuestionsPage })))
+const EduFillBlankQuestionsPage = lazy(() => import('../pages/edu/fill-blank-questions/FillBlankQuestionsPage').then((m) => ({ default: m.EduFillBlankQuestionsPage })))
+const EduFreeTextQuestionsPage = lazy(() => import('../pages/edu/free-text-questions/FreeTextQuestionsPage').then((m) => ({ default: m.EduFreeTextQuestionsPage })))
+const EduTrueFalseQuestionsPage = lazy(() => import('../pages/edu/true-false-questions/TrueFalseQuestionsPage').then((m) => ({ default: m.EduTrueFalseQuestionsPage })))
+const EduQuestionImagesPage = lazy(() => import('../pages/edu/question-images/QuestionImagesPage').then((m) => ({ default: m.EduQuestionImagesPage })))
 
 export const router = createBrowserRouter(
   [

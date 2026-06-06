@@ -1,0 +1,132 @@
+.fill-blank-page .edu-hero {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: repeating-linear-gradient(0deg, var(--bg-primary), var(--bg-primary) 31px, var(--border-color) 32px);
+}
+
+.fill-blank-list {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1.25rem 0;
+}
+
+.fill-blank-card {
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+.fill-blank-card__question {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.fill-blank-card .edu-answer-toggle {
+  margin-top: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.fill-blank-card .edu-answer {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--bg-primary);
+}
+
+.fill-blank-card .edu-card__meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.edu-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.edu-page-action,
+.edu-print-option {
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.fbq-card {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+.fbq-card-header,
+.fbq-card-header-expanded,
+.fbq-header-controls,
+.fbq-metadata {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.fbq-card-header {
+  width: 100%;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fbq-card-question-interactive {
+  line-height: 1.8;
+  flex: 1;
+}
+
+.fbq-inline-input {
+  width: 110px;
+  margin: 0 0.25rem;
+  border: 0;
+  border-bottom: 2px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.fbq-inline-input.correct {
+  border-color: #10b981;
+}
+
+.fbq-inline-input.incorrect {
+  border-color: #ef4444;
+}
+
+.fbq-check-btn,
+.collapse-btn,
+.fbq-reset-btn {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.fbq-result,
+.fbq-answer,
+.fbq-explanation {
+  margin-top: 0.75rem;
+}

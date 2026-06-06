@@ -1,0 +1,125 @@
+.true-false-page .edu-hero {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), rgba(239, 68, 68, 0.1));
+}
+
+.true-false-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.true-false-card {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+}
+
+.true-false-card__question {
+  min-height: 80px;
+  line-height: 1.65;
+}
+
+.true-false-card .edu-answer-toggle {
+  width: 100%;
+  margin-top: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.65rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.true-false-card .edu-answer {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+.true-false-card .edu-card__meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.edu-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.edu-page-action,
+.edu-print-option {
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.tfq-card {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+}
+
+.tfq-card-header,
+.tfq-card-header-expanded,
+.tfq-answer-buttons,
+.tfq-metadata {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.tfq-card-header {
+  width: 100%;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tfq-card-question-full,
+.tfq-card-question-preview {
+  line-height: 1.65;
+}
+
+.tfq-btn,
+.collapse-btn,
+.tfq-reset-btn {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.tfq-btn-true {
+  border-color: #10b981;
+}
+
+.tfq-btn-false {
+  border-color: #ef4444;
+}
+
+.tfq-result,
+.tfq-explanation {
+  margin-top: 0.75rem;
+}

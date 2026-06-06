@@ -1,0 +1,133 @@
+.free-text-page .edu-hero {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.free-text-list {
+  columns: 2 360px;
+  column-gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.free-text-card {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  box-shadow: inset 4px 0 0 var(--primary-color);
+}
+
+.free-text-card__question {
+  line-height: 1.65;
+}
+
+.free-text-card .edu-answer-toggle {
+  margin-top: 0.8rem;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  background: var(--primary-color);
+  color: #fff;
+  cursor: pointer;
+}
+
+.free-text-card .edu-answer {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.free-text-card .edu-free-text-pairs p {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.free-text-card .edu-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.edu-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.edu-page-action,
+.edu-print-option {
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.ftq-card {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  box-shadow: inset 4px 0 0 var(--primary-color);
+}
+
+.ftq-card-header,
+.ftq-exam-interaction-row,
+.ftq-action-buttons,
+.ftq-metadata {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.ftq-card-header {
+  width: 100%;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ftq-exam-text,
+.ftq-card-question-preview {
+  line-height: 1.65;
+}
+
+.ftq-user-input {
+  min-height: 70px;
+  flex: 1;
+  resize: vertical;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.6rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.ftq-icon-btn,
+.collapse-btn {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.ftq-exam-answer-box {
+  margin-top: 0.6rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
