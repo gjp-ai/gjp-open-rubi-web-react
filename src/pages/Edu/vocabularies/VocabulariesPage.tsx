@@ -4,8 +4,10 @@ import { useUIContext } from '../../../shared/contexts/UIContext'
 import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
+import { EduPlayBar, type EduPlayOrder, type EduPlayPronunciation } from '../EduPlayBar'
 import { getEduLearningItems } from '../eduApi'
 import { hasSelectedTags, htmlToText } from '../eduUtils'
+import { readEduPlaySettings, saveEduPlaySettings } from '../playSettings'
 import { generatePrintSheet, openPrintWindow } from './printSheet'
 import { VocabularyCard } from './VocabularyCard'
 import type { PronunciationVariant, VocabularyItem } from './types'
@@ -13,6 +15,7 @@ import './vocabularies.css'
 
 type SortOrder = 'displayOrder' | 'alpha' | 'recent'
 type Direction = 'asc' | 'desc'
+const playSettingsKey = 'vocabularies'
 
 const getAudioUrl = (vocabulary: VocabularyItem, variant: PronunciationVariant) =>
   variant === 'uk'
@@ -56,14 +59,17 @@ export const EduVocabulariesPage = () => {
   const [isExpandedView, setIsExpandedView] = useState(true)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [showSortMenu, setShowSortMenu] = useState(false)
-  const [showIntervalModal, setShowIntervalModal] = useState(false)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
+  const [isPlayPaused, setIsPlayPaused] = useState(false)
   const [currentPlayIndex, setCurrentPlayIndex] = useState(0)
-  const [playInterval, setPlayInterval] = useState(5000)
-  const [playPronunciation, setPlayPronunciation] = useState<PronunciationVariant>('us')
-  const [pendingPlayPronunciation, setPendingPlayPronunciation] = useState<PronunciationVariant>('us')
+  const [playInterval, setPlayInterval] = useState(() => readEduPlaySettings(playSettingsKey).interval)
+  const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
+  const [playPronunciation, setPlayPronunciation] = useState<EduPlayPronunciation>(() => readEduPlaySettings(playSettingsKey).pronunciation)
   const autoPlayTimerRef = useRef<number | null>(null)
-  const randomOrderRef = useRef<number[]>([])
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const playQueueRef = useRef<number[]>([])
+  const playIntervalRef = useRef(playInterval)
+  const playPronunciationRef = useRef(playPronunciation)
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTags[0]
   const backendFilters = useMemo(
@@ -162,17 +168,19 @@ export const EduVocabulariesPage = () => {
     setCurrentPage(1)
   }
 
-  const startAutoPlay = (intervalMs: number) => {
-    setPlayInterval(intervalMs)
-    setPlayPronunciation(pendingPlayPronunciation)
-    setShowIntervalModal(false)
-    randomOrderRef.current = shuffleArray(displayItems.map((_, index) => index))
+  const startAutoPlay = () => {
+    playQueueRef.current = playOrder === 'random' ? shuffleArray(displayItems.map((_, index) => index)) : displayItems.map((_, index) => index)
     setCurrentPlayIndex(0)
+    setIsPlayPaused(false)
     setIsAutoPlaying(true)
   }
 
   const stopAutoPlay = useCallback(() => {
     setIsAutoPlaying(false)
+    setIsPlayPaused(false)
+    setCurrentPlayIndex(0)
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
     if (autoPlayTimerRef.current) {
       clearTimeout(autoPlayTimerRef.current)
       autoPlayTimerRef.current = null
@@ -186,27 +194,62 @@ export const EduVocabulariesPage = () => {
     }
 
     if (displayItems.length > 0) {
-      setPendingPlayPronunciation(playPronunciation)
-      setShowIntervalModal(true)
+      startAutoPlay()
     }
   }
 
-  useEffect(() => {
-    if (!isAutoPlaying || displayItems.length === 0) return undefined
+  const handlePlayIntervalChange = (interval: number) => {
+    setPlayInterval(interval)
+  }
 
-    const randomIndex = randomOrderRef.current[currentPlayIndex]
-    const vocabulary = displayItems[randomIndex]
-    const audioUrl = vocabulary ? getAudioUrl(vocabulary, playPronunciation) : undefined
+  const handlePlayOrderChange = (order: EduPlayOrder) => {
+    setPlayOrder(order)
+  }
+
+  const handlePlayPronunciationChange = (pronunciation: EduPlayPronunciation) => {
+    setPlayPronunciation(pronunciation)
+  }
+
+  const handleTogglePlayPause = useCallback(() => {
+    if (!isAutoPlaying) return
+
+    setIsPlayPaused((paused) => {
+      const nextPaused = !paused
+      if (nextPaused) {
+        if (autoPlayTimerRef.current) {
+          clearTimeout(autoPlayTimerRef.current)
+          autoPlayTimerRef.current = null
+        }
+        currentAudioRef.current?.pause()
+      }
+      return nextPaused
+    })
+  }, [isAutoPlaying])
+
+  useEffect(() => {
+    playIntervalRef.current = playInterval
+    playPronunciationRef.current = playPronunciation
+    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: playPronunciation })
+  }, [playInterval, playOrder, playPronunciation])
+
+  useEffect(() => {
+    if (!isAutoPlaying || isPlayPaused || displayItems.length === 0) return undefined
+
+    const itemIndex = playQueueRef.current[currentPlayIndex] ?? currentPlayIndex
+    const vocabulary = displayItems[itemIndex]
+    const audioUrl = vocabulary ? getAudioUrl(vocabulary, playPronunciationRef.current) : undefined
 
     if (audioUrl) {
-      new Audio(audioUrl).play().catch((err) => console.error('Error playing audio:', err))
+      currentAudioRef.current?.pause()
+      const audio = new Audio(audioUrl)
+      currentAudioRef.current = audio
+      audio.play().catch((err) => console.error('Error playing audio:', err))
     }
 
-    if (currentPlayIndex < randomOrderRef.current.length - 1) {
-      autoPlayTimerRef.current = window.setTimeout(() => setCurrentPlayIndex((index) => index + 1), playInterval)
+    if (currentPlayIndex < playQueueRef.current.length - 1) {
+      autoPlayTimerRef.current = window.setTimeout(() => setCurrentPlayIndex((index) => index + 1), playIntervalRef.current)
     } else {
-      setIsAutoPlaying(false)
-      setCurrentPlayIndex(0)
+      autoPlayTimerRef.current = window.setTimeout(stopAutoPlay, playIntervalRef.current)
     }
 
     return () => {
@@ -214,7 +257,7 @@ export const EduVocabulariesPage = () => {
         clearTimeout(autoPlayTimerRef.current)
       }
     }
-  }, [currentPlayIndex, displayItems, isAutoPlaying, playInterval, playPronunciation])
+  }, [currentPlayIndex, displayItems, isAutoPlaying, isPlayPaused, stopAutoPlay])
 
   useEffect(() => stopAutoPlay, [stopAutoPlay])
 
@@ -224,43 +267,13 @@ export const EduVocabulariesPage = () => {
   }
 
   const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL']
+  const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
+  const currentPlaySubtitle = currentPlayItem ? htmlToText(currentPlayItem.translation || currentPlayItem.easyMeaning || currentPlayItem.meaning) : ''
+  const currentPlayDescription = currentPlayItem ? htmlToText(currentPlayItem.definition || currentPlayItem.example || currentPlayItem.synonyms) : ''
+  const currentPlayMeta = currentPlayItem ? [currentPlayItem.partOfSpeech, currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
 
   return (
     <div className="page-container edu-page vocabularies-page">
-      {showIntervalModal ? (
-        <div className="interval-modal-overlay" onClick={() => setShowIntervalModal(false)}>
-          <div className="interval-modal" onClick={(event) => event.stopPropagation()}>
-            <h3>{t('vocabulary.select_play_interval')}</h3>
-            <p>{t('vocabulary.choose_play_interval')}</p>
-            <div className="interval-pronunciation">
-              <span>{t('vocabulary.play_phonetics')}</span>
-              <div className="interval-segmented" role="group" aria-label={t('vocabulary.play_phonetics')}>
-                {(['us', 'uk'] as PronunciationVariant[]).map((variant) => (
-                  <button
-                    key={variant}
-                    className={`interval-segment${pendingPlayPronunciation === variant ? ' active' : ''}`}
-                    onClick={() => setPendingPlayPronunciation(variant)}
-                    type="button"
-                  >
-                    {variant.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="interval-options">
-              {[2000, 5000, 10000, 15000, 20000, 25000].map((interval) => (
-                <button key={interval} onClick={() => startAutoPlay(interval)} className="interval-btn" type="button">
-                  {interval / 1000} {t('vocabulary.seconds')}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setShowIntervalModal(false)} className="interval-cancel-btn" type="button">
-              {t('vocabulary.cancel')}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
       <section className="vocab-toolbar" aria-label={t('vocabulary.filters')}>
         <div className="vocab-toolbar__top">
           <div className="vocab-toolbar__title">
@@ -430,6 +443,26 @@ export const EduVocabulariesPage = () => {
       )}
 
       <Pagination currentPage={currentPage} totalPages={totalPages} pageSize={pageSize} totalElements={totalElements} onPageChange={setCurrentPage} onPageSizeChange={handlePageSizeChange} />
+
+      {isAutoPlaying ? (
+        <EduPlayBar
+          currentIndex={currentPlayIndex}
+          total={displayItems.length}
+          interval={playInterval}
+          order={playOrder}
+          pronunciation={playPronunciation}
+          isPaused={isPlayPaused}
+          currentTitle={currentPlayItem?.name ?? ''}
+          currentSubtitle={currentPlaySubtitle}
+          currentDescription={currentPlayDescription}
+          currentMeta={currentPlayMeta}
+          onStop={stopAutoPlay}
+          onTogglePause={handleTogglePlayPause}
+          onIntervalChange={handlePlayIntervalChange}
+          onOrderChange={handlePlayOrderChange}
+          onPronunciationChange={handlePlayPronunciationChange}
+        />
+      ) : null}
     </div>
   )
 }

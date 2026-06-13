@@ -5,13 +5,16 @@ import { useUIContext } from '../../../shared/contexts/UIContext'
 import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
+import { EduPlayBar, type EduPlayOrder } from '../EduPlayBar'
 import { getEduLearningItems, type EduLearningKind } from '../eduApi'
 import { hasSelectedTags, htmlToText } from '../eduUtils'
+import { readEduPlaySettings, saveEduPlaySettings } from '../playSettings'
 import { SentenceCard } from './SentenceCard'
 import { generatePrintSheet, openPrintWindow } from './printSheet'
 import './sentences.css'
 
 type SortOrder = 'displayOrder' | 'alpha' | 'recent'
+const playSettingsKey = 'sentences'
 
 const tagKeys: Record<EduLearningKind, string> = {
   vocabularies: 'vocabulary_tags',
@@ -28,6 +31,15 @@ const matches = (item: EduLearningItem, query: string) => {
 
 const getAudioUrl = (item: EduLearningItem) => item.phoneticUsAudioUrl || item.phoneticAudioUrl || item.phoneticUkAudioUrl
 
+const shuffleArray = (array: number[]) => {
+  const shuffled = [...array]
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    ;[shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]]
+  }
+  return shuffled
+}
+
 export const EduSentencesPage = () => {
   const kind: EduLearningKind = 'sentences'
   const { language } = useUIContext()
@@ -39,11 +51,15 @@ export const EduSentencesPage = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
   const [showSortMenu, setShowSortMenu] = useState(false)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [showIntervalModal, setShowIntervalModal] = useState(false)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
+  const [isPlayPaused, setIsPlayPaused] = useState(false)
   const [currentPlayIndex, setCurrentPlayIndex] = useState(0)
-  const [playInterval, setPlayInterval] = useState(5000)
+  const [playInterval, setPlayInterval] = useState(() => readEduPlaySettings(playSettingsKey).interval)
+  const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
   const autoPlayTimerRef = useRef<number | null>(null)
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const playQueueRef = useRef<number[]>([])
+  const playIntervalRef = useRef(playInterval)
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTags[0]
   const sectionTags = getTags(tagKeys[kind])
@@ -108,7 +124,10 @@ export const EduSentencesPage = () => {
 
   const stopAutoPlay = useCallback(() => {
     setIsAutoPlaying(false)
+    setIsPlayPaused(false)
     setCurrentPlayIndex(0)
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
     if (autoPlayTimerRef.current) {
       clearTimeout(autoPlayTimerRef.current)
       autoPlayTimerRef.current = null
@@ -120,61 +139,79 @@ export const EduSentencesPage = () => {
       stopAutoPlay()
       return
     }
-    if (displayItems.length > 0) setShowIntervalModal(true)
+    if (displayItems.length > 0) startAutoPlay()
   }
 
-  const startAutoPlay = (intervalMs: number) => {
-    setPlayInterval(intervalMs)
-    setShowIntervalModal(false)
+  const startAutoPlay = () => {
+    playQueueRef.current = playOrder === 'random' ? shuffleArray(displayItems.map((_, index) => index)) : displayItems.map((_, index) => index)
     setCurrentPlayIndex(0)
+    setIsPlayPaused(false)
     setIsAutoPlaying(true)
   }
 
-  useEffect(() => {
-    if (!isAutoPlaying || displayItems.length === 0) return undefined
+  const handlePlayIntervalChange = (interval: number) => {
+    setPlayInterval(interval)
+  }
 
-    const sentence = displayItems[currentPlayIndex]
+  const handlePlayOrderChange = (order: EduPlayOrder) => {
+    setPlayOrder(order)
+  }
+
+  const handleTogglePlayPause = useCallback(() => {
+    if (!isAutoPlaying) return
+
+    setIsPlayPaused((paused) => {
+      const nextPaused = !paused
+      if (nextPaused) {
+        if (autoPlayTimerRef.current) {
+          clearTimeout(autoPlayTimerRef.current)
+          autoPlayTimerRef.current = null
+        }
+        currentAudioRef.current?.pause()
+      }
+      return nextPaused
+    })
+  }, [isAutoPlaying])
+
+  useEffect(() => {
+    playIntervalRef.current = playInterval
+    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: 'us' })
+  }, [playInterval, playOrder])
+
+  useEffect(() => {
+    if (!isAutoPlaying || isPlayPaused || displayItems.length === 0) return undefined
+
+    const itemIndex = playQueueRef.current[currentPlayIndex] ?? currentPlayIndex
+    const sentence = displayItems[itemIndex]
     const audioUrl = sentence ? getAudioUrl(sentence) : undefined
     if (audioUrl) {
-      new Audio(audioUrl).play().catch((error) => console.error('Audio playback failed:', error))
+      currentAudioRef.current?.pause()
+      const audio = new Audio(audioUrl)
+      currentAudioRef.current = audio
+      audio.play().catch((error) => console.error('Audio playback failed:', error))
     }
 
-    if (currentPlayIndex < displayItems.length - 1) {
-      autoPlayTimerRef.current = window.setTimeout(() => setCurrentPlayIndex((index) => index + 1), playInterval)
+    if (currentPlayIndex < playQueueRef.current.length - 1) {
+      autoPlayTimerRef.current = window.setTimeout(() => setCurrentPlayIndex((index) => index + 1), playIntervalRef.current)
     } else {
-      autoPlayTimerRef.current = window.setTimeout(stopAutoPlay, playInterval)
+      autoPlayTimerRef.current = window.setTimeout(stopAutoPlay, playIntervalRef.current)
     }
 
     return () => {
       if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current)
     }
-  }, [currentPlayIndex, displayItems, isAutoPlaying, playInterval, stopAutoPlay])
+  }, [currentPlayIndex, displayItems, isAutoPlaying, isPlayPaused, stopAutoPlay])
 
   useEffect(() => stopAutoPlay, [stopAutoPlay])
 
   const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL', 'Sentence']
+  const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
+  const currentPlaySubtitle = currentPlayItem ? htmlToText(currentPlayItem.translation || currentPlayItem.easyMeaning || currentPlayItem.meaning) : ''
+  const currentPlayDescription = currentPlayItem ? htmlToText(currentPlayItem.sentenceOne || currentPlayItem.sentenceTwo || currentPlayItem.explanation) : ''
+  const currentPlayMeta = currentPlayItem ? [currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
 
   return (
     <div className="page-container edu-page sentences-page">
-      {showIntervalModal ? (
-        <div className="interval-modal-overlay" onClick={() => setShowIntervalModal(false)}>
-          <div className="interval-modal" onClick={(event) => event.stopPropagation()}>
-            <h3>{t('vocabulary.select_play_interval')}</h3>
-            <p>{t('vocabulary.choose_play_interval')}</p>
-            <div className="interval-options">
-              {[2000, 5000, 10000, 15000, 20000, 25000].map((interval) => (
-                <button key={interval} onClick={() => startAutoPlay(interval)} className="interval-btn" type="button">
-                  {interval / 1000} {t('vocabulary.seconds')}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setShowIntervalModal(false)} className="interval-cancel-btn" type="button">
-              {t('vocabulary.cancel')}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
       <section className="vocab-toolbar" aria-label={t('vocabulary.filters')}>
         <div className="vocab-toolbar__top">
           <div className="vocab-toolbar__title">
@@ -280,6 +317,24 @@ export const EduSentencesPage = () => {
         onPageChange={(page) => setCurrentPage(page)}
         onPageSizeChange={handlePageSizeChange}
       />
+
+      {isAutoPlaying ? (
+        <EduPlayBar
+          currentIndex={currentPlayIndex}
+          total={displayItems.length}
+          interval={playInterval}
+          order={playOrder}
+          isPaused={isPlayPaused}
+          currentTitle={currentPlayItem?.name ?? ''}
+          currentSubtitle={currentPlaySubtitle}
+          currentDescription={currentPlayDescription}
+          currentMeta={currentPlayMeta}
+          onStop={stopAutoPlay}
+          onTogglePause={handleTogglePlayPause}
+          onIntervalChange={handlePlayIntervalChange}
+          onOrderChange={handlePlayOrderChange}
+        />
+      ) : null}
     </div>
   )
 }
