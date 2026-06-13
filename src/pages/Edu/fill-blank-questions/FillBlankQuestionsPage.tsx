@@ -179,7 +179,7 @@ export const EduFillBlankQuestionsPage = () => {
               onClick={handleToggleView}
               title={isExpandedView ? t('vocabulary.compact') : t('vocabulary.detailed')}
               aria-label={isExpandedView ? t('vocabulary.compact') : t('vocabulary.detailed')}
-              className={`action-btn ${isExpandedView ? 'active' : ''}`}
+                className={`action-btn action-btn--view ${isExpandedView ? 'active' : ''}`}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {isExpandedView ? (
@@ -203,7 +203,7 @@ export const EduFillBlankQuestionsPage = () => {
               onClick={handleShowPrintDialog}
               title={t('vocabulary.print')}
               aria-label={t('vocabulary.print')}
-              className="action-btn"
+              className="action-btn action-btn--print"
               disabled={displayItems.length === 0}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -218,7 +218,7 @@ export const EduFillBlankQuestionsPage = () => {
               onClick={() => setShowFilters((v) => !v)}
               title={t('edu.tags_filter')}
               aria-label={t('edu.tags_filter')}
-              className={`action-btn ${showFilters ? 'active' : ''}`}
+              className={`action-btn action-btn--filters ${showFilters ? 'active' : ''}`}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

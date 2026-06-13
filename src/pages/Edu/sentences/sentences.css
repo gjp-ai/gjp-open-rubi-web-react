@@ -226,7 +226,7 @@
 }
 
 .sentence-card-phonetics strong {
-  color: #5b64f4;
+  color: var(--color-primary);
   font-family: inherit;
   font-style: normal;
 }
@@ -303,7 +303,7 @@
 
 .sentence-detail-modal--learning .detail-eyebrow {
   margin: 0 0 8px;
-  color: #5b64f4;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -338,7 +338,7 @@
 }
 
 .sentence-detail-modal--learning .detail-pronunciation-label {
-  color: #5b64f4;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 850;
 }
@@ -353,8 +353,8 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: #eef1ff;
-  color: #5661ff;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
 .sentence-detail-modal--learning .detail-section-grid {
@@ -437,9 +437,9 @@
 }
 
 .sentence-detail-modal--learning .detail-autoplay-toggle.active {
-  color: #2832c2;
-  border-color: #cdd5ff;
-  background: #f3f5ff;
+  color: var(--color-primary);
+  border-color: var(--color-primary-muted);
+  background: var(--color-primary-soft);
 }
 
 .sentence-detail-modal--learning .detail-autoplay-switch {
@@ -464,7 +464,7 @@
 }
 
 .sentence-detail-modal--learning .detail-autoplay-toggle.active .detail-autoplay-switch {
-  background: #5661ff;
+  background: var(--color-primary);
 }
 
 .sentence-detail-modal--learning .detail-autoplay-toggle.active .detail-autoplay-switch::after {
@@ -494,7 +494,7 @@
 }
 
 .sentence-detail-modal--learning .detail-autoplay-segment.active {
-  background: #5661ff;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -586,8 +586,8 @@
 }
 
 .sentences-page .vocab-chip.active {
-  border-color: #5a64ff;
-  color: #1f2aff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .sentences-page .vocab-chip svg {
@@ -623,10 +623,10 @@
 }
 
 .sentences-page .vocab-action.active {
-  border-color: #5961ff;
-  background: #5b61f4;
-  color: #0b0b0b;
-  box-shadow: 0 5px 13px rgba(91, 97, 244, 0.35);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 5px 13px var(--color-primary-muted);
 }
 
 .sentences-page .vocab-action:disabled {
@@ -636,6 +636,7 @@
 
 .sentences-page .vocab-sort-menu {
   position: relative;
+  order: 5;
 }
 
 .sentences-page .vocab-sort-dropdown {
@@ -674,8 +675,24 @@
 
 .sentences-page .vocab-sort-dropdown button:hover,
 .sentences-page .vocab-sort-dropdown button.active {
-  background: #eef0ff;
-  color: #1f2aff;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.sentences-page .vocab-action--filters {
+  order: 1;
+}
+
+.sentences-page .vocab-action--view {
+  order: 2;
+}
+
+.sentences-page .vocab-action--play {
+  order: 3;
+}
+
+.sentences-page .vocab-action--print {
+  order: 4;
 }
 
 .sentences-page .vocab-filter-grid {
@@ -729,12 +746,12 @@
 }
 
 .sentences-page .vocab-filter-btn:hover {
-  border-color: #5d66ff;
+  border-color: var(--color-primary);
 }
 
 .sentences-page .vocab-filter-btn--primary {
-  border-color: #5961ff;
-  background: #5961ff;
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -787,8 +804,8 @@
 }
 
 .sentences-page .interval-btn:hover {
-  border-color: #5b61f4;
-  color: #2832c2;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .sentences-page .interval-cancel-btn {
@@ -841,7 +858,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #5864ff;
+  color: var(--color-primary);
 }
 
 .sentence-card-phonetics .sentence-card-audio svg {
@@ -920,7 +937,7 @@
   gap: 16px;
   padding: 18px 20px;
   border: 1px solid #d6dbe3;
-  border-left: 4px solid #5b61f4;
+  border-left: 4px solid var(--color-primary);
   border-radius: 12px;
   background: #fbfcfd;
   text-align: left;
@@ -929,7 +946,7 @@
 .sentence-card:hover,
 .sentence-card:focus-visible {
   border-color: #b8c0cc;
-  border-left-color: #5b61f4;
+  border-left-color: var(--color-primary);
   background: #fff;
 }
 
@@ -960,7 +977,7 @@
 }
 
 .sentence-card-phonetics strong {
-  color: #5b64f4;
+  color: var(--color-primary);
   font-family: inherit;
   font-size: 11px;
   font-style: normal;
@@ -977,7 +994,7 @@
   border: 1px solid #dfe5ef;
   border-radius: 999px;
   background: #fff;
-  color: #5864ff;
+  color: var(--color-primary);
   position: relative;
   z-index: 2;
   pointer-events: auto;
@@ -985,8 +1002,8 @@
 }
 
 .sentence-card-phonetics .sentence-card-audio:hover {
-  border-color: #cdd5ff;
-  background: #eef1ff;
+  border-color: var(--color-primary-muted);
+  background: var(--color-primary-soft);
 }
 
 .sentence-card-phonetics .sentence-card-audio svg {

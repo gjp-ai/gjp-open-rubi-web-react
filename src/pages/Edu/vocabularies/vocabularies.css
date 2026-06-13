@@ -590,8 +590,8 @@
 }
 
 .vocab-chip.active {
-  border-color: #5a64ff;
-  color: #1f2aff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .vocab-chip svg {
@@ -609,6 +609,7 @@
 
 .vocab-sort-menu {
   position: relative;
+  order: 5;
 }
 
 .vocab-sort-dropdown {
@@ -647,8 +648,8 @@
 
 .vocab-sort-dropdown button:hover,
 .vocab-sort-dropdown button.active {
-  background: #eef0ff;
-  color: #1f2aff;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
 .vocab-action {
@@ -670,19 +671,35 @@
 }
 
 .vocab-action:hover:not(:disabled) {
-  border-color: #5d66ff;
-  color: #000;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .vocab-action.active {
-  border-color: #5961ff;
-  background: #5b61f4;
-  color: #0b0b0b;
-  box-shadow: 0 5px 13px rgba(91, 97, 244, 0.35);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 5px 13px var(--color-primary-muted);
 }
 
 .vocab-action.playing {
   color: #fff;
+}
+
+.vocab-action--filters {
+  order: 1;
+}
+
+.vocab-action--view {
+  order: 2;
+}
+
+.vocab-action--play {
+  order: 3;
+}
+
+.vocab-action--print {
+  order: 4;
 }
 
 .vocab-filter-grid {
@@ -726,12 +743,12 @@
 }
 
 .vocab-filter-btn:hover {
-  border-color: #5d66ff;
+  border-color: var(--color-primary);
 }
 
 .vocab-filter-btn--primary {
-  border-color: #5961ff;
-  background: #5961ff;
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -787,7 +804,7 @@
 .vocab-card-audio {
   width: 24px;
   height: 24px;
-  color: #5864ff;
+  color: var(--color-primary);
 }
 
 .vocab-card-audio svg {
@@ -1138,9 +1155,9 @@
 }
 
 .interval-segment.active {
-  background: #5661ff;
+  background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 8px 18px rgba(86, 97, 255, 0.28);
+  box-shadow: 0 8px 18px var(--color-primary-muted);
 }
 
 .interval-segment:hover:not(.active) {
@@ -1225,7 +1242,7 @@
 
 .detail-eyebrow {
   margin: 0 0 8px;
-  color: #5b64f4;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -1252,7 +1269,7 @@
 }
 
 .detail-pronunciation-label {
-  color: #5b64f4;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.04em;
@@ -1261,13 +1278,13 @@
 .detail-audio-btn--large {
   width: 34px;
   height: 34px;
-  background: #eef1ff;
-  color: #5661ff;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
   border-radius: 10px;
 }
 
 .detail-audio-btn--large:hover {
-  background: #5661ff;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -1318,9 +1335,9 @@
 }
 
 .detail-autoplay-toggle.active {
-  color: #2832c2;
-  border-color: #cdd5ff;
-  background: #f3f5ff;
+  color: var(--color-primary);
+  border-color: var(--color-primary-muted);
+  background: var(--color-primary-soft);
 }
 
 .detail-autoplay-switch {
@@ -1346,7 +1363,7 @@
 }
 
 .detail-autoplay-toggle.active .detail-autoplay-switch {
-  background: #5661ff;
+  background: var(--color-primary);
 }
 
 .detail-autoplay-toggle.active .detail-autoplay-switch::after {
@@ -1371,9 +1388,9 @@
 }
 
 .detail-autoplay-segment.active {
-  background: #5661ff;
+  background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 6px 14px rgba(86, 97, 255, 0.24);
+  box-shadow: 0 6px 14px var(--color-primary-muted);
 }
 
 .vocabulary-detail-modal--learning .detail-image-container {

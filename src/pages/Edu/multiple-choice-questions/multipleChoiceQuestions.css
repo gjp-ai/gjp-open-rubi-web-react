@@ -169,6 +169,18 @@
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.mcq-page .action-btn--filters {
+  order: 1;
+}
+
+.mcq-page .action-btn--view {
+  order: 2;
+}
+
+.mcq-page .action-btn--print {
+  order: 4;
+}
+
 .mcq-page .action-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
@@ -312,6 +324,7 @@
 
 .mcq-sort-menu {
   position: relative;
+  order: 5;
 }
 
 .mcq-sort-dropdown {

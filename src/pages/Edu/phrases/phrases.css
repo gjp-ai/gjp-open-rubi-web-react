@@ -360,7 +360,7 @@
 
 .phrase-detail-modal--learning .detail-eyebrow {
   margin: 0 0 8px;
-  color: #5b64f4;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -395,7 +395,7 @@
 }
 
 .phrase-detail-modal--learning .detail-pronunciation-label {
-  color: #5b64f4;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 850;
 }
@@ -404,8 +404,8 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: #eef1ff;
-  color: #5661ff;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
 .phrase-detail-modal--learning .detail-section-grid {
@@ -485,9 +485,9 @@
 }
 
 .phrase-detail-modal--learning .detail-autoplay-toggle.active {
-  color: #2832c2;
-  border-color: #cdd5ff;
-  background: #f3f5ff;
+  color: var(--color-primary);
+  border-color: var(--color-primary-muted);
+  background: var(--color-primary-soft);
 }
 
 .phrase-detail-modal--learning .detail-autoplay-switch {
@@ -512,7 +512,7 @@
 }
 
 .phrase-detail-modal--learning .detail-autoplay-toggle.active .detail-autoplay-switch {
-  background: #5661ff;
+  background: var(--color-primary);
 }
 
 .phrase-detail-modal--learning .detail-autoplay-toggle.active .detail-autoplay-switch::after {
@@ -542,7 +542,7 @@
 }
 
 .phrase-detail-modal--learning .detail-autoplay-segment.active {
-  background: #5661ff;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -634,8 +634,8 @@
 }
 
 .phrases-page .vocab-chip.active {
-  border-color: #5a64ff;
-  color: #1f2aff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .phrases-page .vocab-chip svg {
@@ -671,10 +671,10 @@
 }
 
 .phrases-page .vocab-action.active {
-  border-color: #5961ff;
-  background: #5b61f4;
-  color: #0b0b0b;
-  box-shadow: 0 5px 13px rgba(91, 97, 244, 0.35);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 5px 13px var(--color-primary-muted);
 }
 
 .phrases-page .vocab-action:disabled {
@@ -684,6 +684,7 @@
 
 .phrases-page .vocab-sort-menu {
   position: relative;
+  order: 5;
 }
 
 .phrases-page .vocab-sort-dropdown {
@@ -722,8 +723,24 @@
 
 .phrases-page .vocab-sort-dropdown button:hover,
 .phrases-page .vocab-sort-dropdown button.active {
-  background: #eef0ff;
-  color: #1f2aff;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.phrases-page .vocab-action--filters {
+  order: 1;
+}
+
+.phrases-page .vocab-action--view {
+  order: 2;
+}
+
+.phrases-page .vocab-action--play {
+  order: 3;
+}
+
+.phrases-page .vocab-action--print {
+  order: 4;
 }
 
 .phrases-page .vocab-filter-grid {
@@ -777,12 +794,12 @@
 }
 
 .phrases-page .vocab-filter-btn:hover {
-  border-color: #5d66ff;
+  border-color: var(--color-primary);
 }
 
 .phrases-page .vocab-filter-btn--primary {
-  border-color: #5961ff;
-  background: #5961ff;
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -835,8 +852,8 @@
 }
 
 .phrases-page .interval-btn:hover {
-  border-color: #5b61f4;
-  color: #2832c2;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .phrases-page .interval-cancel-btn {
@@ -896,7 +913,7 @@
   width: 24px;
   height: 24px;
   background: transparent;
-  color: #5864ff;
+  color: var(--color-primary);
   position: relative;
   z-index: 2;
   pointer-events: auto;

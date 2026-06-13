@@ -226,16 +226,16 @@ export const EduSentencesPage = () => {
                 </div>
               ) : null}
             </div>
-            <button className="vocab-action active" type="button" title={t('vocabulary.detailed')} aria-label={t('vocabulary.detailed')}>
+            <button className="vocab-action vocab-action--view active" type="button" title={t('vocabulary.detailed')} aria-label={t('vocabulary.detailed')}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
             </button>
-            <button className="vocab-action" onClick={handlePrint} type="button" disabled={displayItems.length === 0} title={t('vocabulary.print')} aria-label={t('vocabulary.print')}>
+            <button className="vocab-action vocab-action--print" onClick={handlePrint} type="button" disabled={displayItems.length === 0} title={t('vocabulary.print')} aria-label={t('vocabulary.print')}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M7 14h10v7H7z" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
             </button>
-            <button className={`vocab-action${isAutoPlaying ? ' active playing' : ''}`} onClick={handleAutoPlay} type="button" disabled={displayItems.length === 0} title={isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} aria-label={isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')}>
+            <button className={`vocab-action vocab-action--play${isAutoPlaying ? ' active playing' : ''}`} onClick={handleAutoPlay} type="button" disabled={displayItems.length === 0} title={isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} aria-label={isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">{isAutoPlaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /> : <path d="M8 5v14l11-7Z" fill="currentColor" />}</svg>
             </button>
-            <button className={`vocab-action${showAdvancedFilters ? ' active' : ''}`} onClick={() => setShowAdvancedFilters((value) => !value)} type="button" title={t('vocabulary.filters')} aria-label={t('vocabulary.filters')}>
+            <button className={`vocab-action vocab-action--filters${showAdvancedFilters ? ' active' : ''}`} onClick={() => setShowAdvancedFilters((value) => !value)} type="button" title={t('vocabulary.filters')} aria-label={t('vocabulary.filters')}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v5l-4 2v-7Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
             </button>
           </div>
