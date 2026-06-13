@@ -8,6 +8,7 @@ import { Pagination } from '../../../shared/ui/Pagination'
 import { getEduQuestions, type EduQuestionKind } from '../eduApi'
 import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { getSubjectOptions, getTopicOptions, gradeOptions } from '../question-common/curriculumOptions'
+import { QuestionExam } from '../question-common/QuestionExam'
 import { FillBlankQuestionCard } from './FillBlankQuestionCard'
 import { generatePrintExamSheet, openPrintWindow } from './printExamSheet'
 import './fillBlankQuestions.css'
@@ -46,6 +47,7 @@ export const EduFillBlankQuestionsPage = () => {
   const [isExpandedView, setIsExpandedView] = useState(false)
   const [showPrintDialog, setShowPrintDialog] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [showExam, setShowExam] = useState(false)
   const [printOptions, setPrintOptions] = useState({ showAnswer: false, showExplanation: false })
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTags[0]
@@ -236,6 +238,18 @@ export const EduFillBlankQuestionsPage = () => {
               ) : null}
             </div>
             {/* Toggle expanded/compact view */}
+            <button
+              type="button"
+              onClick={() => setShowExam(true)}
+              title="Start exam"
+              aria-label="Start exam"
+              className="action-btn action-btn--exam"
+              disabled={displayItems.length === 0}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 5v14l11-7-11-7Z" fill="currentColor" />
+              </svg>
+            </button>
             <button
               type="button"
               onClick={handleToggleView}
@@ -431,6 +445,15 @@ export const EduFillBlankQuestionsPage = () => {
           </div>
         </div>
       )}
+
+      {showExam ? (
+        <QuestionExam
+          kind={kind}
+          questions={displayItems}
+          title={pageLabel}
+          onClose={() => setShowExam(false)}
+        />
+      ) : null}
     </div>
   )
 }

@@ -177,6 +177,10 @@
   order: 2;
 }
 
+.mcq-page .action-btn--exam {
+  order: 3;
+}
+
 .mcq-page .action-btn--print {
   order: 4;
 }

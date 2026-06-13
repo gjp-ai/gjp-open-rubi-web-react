@@ -177,6 +177,10 @@
   order: 2;
 }
 
+.free-text-page .action-btn--exam {
+  order: 3;
+}
+
 .free-text-page .action-btn--print {
   order: 4;
 }
