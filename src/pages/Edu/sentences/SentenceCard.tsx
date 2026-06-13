@@ -79,6 +79,7 @@ export const SentenceCard = ({ sentence, sentences, currentIndex }: { sentence: 
       </article>
       {showDetail ? (
         <SentenceDetail
+          key={sentences[activeIndex]?.id ?? sentence.id}
           sentence={sentences[activeIndex] ?? sentence}
           onClose={() => setShowDetail(false)}
           onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}

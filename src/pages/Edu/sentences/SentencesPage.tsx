@@ -43,31 +43,55 @@ const shuffleArray = (array: number[]) => {
 export const EduSentencesPage = () => {
   const kind: EduLearningKind = 'sentences'
   const { language } = useUIContext()
-  const { getTags } = useAppSettings()
+  const { getTags, getValue } = useAppSettings()
   const t = useT()
   const [searchQuery, setSearchQuery] = useState('')
   const [draftSearchQuery, setDraftSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
+  const [term, setTerm] = useState('')
+  const [draftTerm, setDraftTerm] = useState('')
+  const [week, setWeek] = useState('')
+  const [draftWeek, setDraftWeek] = useState('')
+  const [difficultyLevel, setDifficultyLevel] = useState('')
+  const [draftDifficultyLevel, setDraftDifficultyLevel] = useState('')
   const [showSortMenu, setShowSortMenu] = useState(false)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [isPlayPaused, setIsPlayPaused] = useState(false)
   const [currentPlayIndex, setCurrentPlayIndex] = useState(0)
+  const [playProgress, setPlayProgress] = useState(0)
   const [playInterval, setPlayInterval] = useState(() => readEduPlaySettings(playSettingsKey).interval)
   const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
   const autoPlayTimerRef = useRef<number | null>(null)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const playQueueRef = useRef<number[]>([])
   const playIntervalRef = useRef(playInterval)
+  const isPlayPausedRef = useRef(isPlayPaused)
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTags[0]
+  const backendFilters = useMemo(
+    () => ({
+      term: term || undefined,
+      week: week || undefined,
+      difficultyLevel: difficultyLevel || undefined,
+    }),
+    [difficultyLevel, term, week],
+  )
   const sectionTags = getTags(tagKeys[kind])
+  const difficultyLevels = useMemo(
+    () =>
+      (getValue('difficulty_level') ?? '')
+        .split(',')
+        .map((level) => level.trim())
+        .filter(Boolean),
+    [getValue],
+  )
 
   const fetcher = useCallback(
     (page: number, size: number, lang: string, signal: AbortSignal) =>
-      getEduLearningItems(kind, page, size, backendSearchQuery, backendTag, lang, signal),
-    [kind, backendSearchQuery, backendTag],
+      getEduLearningItems(kind, page, size, backendSearchQuery, backendTag, lang, signal, backendFilters),
+    [kind, backendSearchQuery, backendTag, backendFilters],
   )
 
   const {
@@ -85,8 +109,13 @@ export const EduSentencesPage = () => {
 
   const displayItems = useMemo(() => {
     const query = draftSearchQuery.trim()
-    const filtered = items.filter((item) => item.lang === language && matches(item, query))
-    const tagFiltered = filtered.filter((item) => hasSelectedTags(item.tags, selectedTags))
+    const tagFiltered = items.filter((item) => {
+      const matchesTags = hasSelectedTags(item.tags, selectedTags)
+      const matchesTerm = !draftTerm || String(item.term ?? '') === draftTerm
+      const matchesWeek = !draftWeek || String(item.week ?? '') === draftWeek
+      const matchesDifficulty = !draftDifficultyLevel || item.difficultyLevel === draftDifficultyLevel
+      return item.lang === language && matches(item, query) && matchesTags && matchesTerm && matchesWeek && matchesDifficulty
+    })
     switch (sortOrder) {
       case 'alpha':
         return [...tagFiltered].sort((a, b) => a.name.localeCompare(b.name, language === 'ZH' ? 'zh-CN' : 'en'))
@@ -95,11 +124,14 @@ export const EduSentencesPage = () => {
       default:
         return [...tagFiltered].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     }
-  }, [draftSearchQuery, items, language, selectedTags, sortOrder])
+  }, [draftDifficultyLevel, draftSearchQuery, draftTerm, draftWeek, items, language, selectedTags, sortOrder])
 
   const applyFilters = (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
     setSearchQuery(draftSearchQuery)
+    setTerm(draftTerm)
+    setWeek(draftWeek)
+    setDifficultyLevel(draftDifficultyLevel)
     setCurrentPage(1)
   }
 
@@ -113,6 +145,12 @@ export const EduSentencesPage = () => {
     setDraftSearchQuery('')
     setSelectedTags([])
     setSortOrder('displayOrder')
+    setTerm('')
+    setDraftTerm('')
+    setWeek('')
+    setDraftWeek('')
+    setDifficultyLevel('')
+    setDraftDifficultyLevel('')
     setShowSortMenu(false)
     setCurrentPage(1)
   }
@@ -125,6 +163,7 @@ export const EduSentencesPage = () => {
   const stopAutoPlay = useCallback(() => {
     setIsAutoPlaying(false)
     setIsPlayPaused(false)
+    setPlayProgress(0)
     setCurrentPlayIndex(0)
     currentAudioRef.current?.pause()
     currentAudioRef.current = null
@@ -168,10 +207,32 @@ export const EduSentencesPage = () => {
           autoPlayTimerRef.current = null
         }
         currentAudioRef.current?.pause()
+      } else {
+        const audio = currentAudioRef.current
+        if (audio && !audio.ended) {
+          audio.play().catch((error) => {
+            console.error('Audio playback failed:', error)
+          })
+        } else if (!audio || audio.ended) {
+          autoPlayTimerRef.current = window.setTimeout(() => {
+            if (currentPlayIndex < playQueueRef.current.length - 1) {
+              setCurrentPlayIndex((index) => index + 1)
+            } else {
+              stopAutoPlay()
+            }
+          }, playIntervalRef.current)
+        }
       }
       return nextPaused
     })
-  }, [isAutoPlaying])
+  }, [currentPlayIndex, isAutoPlaying, stopAutoPlay])
+
+  const handlePlayProgressSeek = useCallback((progress: number) => {
+    setPlayProgress(progress)
+    const audio = currentAudioRef.current
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return
+    audio.currentTime = (audio.duration * progress) / 100
+  }, [])
 
   useEffect(() => {
     playIntervalRef.current = playInterval
@@ -179,28 +240,59 @@ export const EduSentencesPage = () => {
   }, [playInterval, playOrder])
 
   useEffect(() => {
-    if (!isAutoPlaying || isPlayPaused || displayItems.length === 0) return undefined
+    isPlayPausedRef.current = isPlayPaused
+  }, [isPlayPaused])
+
+  useEffect(() => {
+    if (!isAutoPlaying || displayItems.length === 0) return undefined
 
     const itemIndex = playQueueRef.current[currentPlayIndex] ?? currentPlayIndex
     const sentence = displayItems[itemIndex]
     const audioUrl = sentence ? getAudioUrl(sentence) : undefined
+    setPlayProgress(0)
+    let didScheduleNext = false
+    const scheduleNext = () => {
+      if (didScheduleNext) return
+      didScheduleNext = true
+      setPlayProgress(100)
+      if (currentPlayIndex < playQueueRef.current.length - 1) {
+        autoPlayTimerRef.current = window.setTimeout(() => setCurrentPlayIndex((index) => index + 1), playIntervalRef.current)
+      } else {
+        autoPlayTimerRef.current = window.setTimeout(stopAutoPlay, playIntervalRef.current)
+      }
+    }
+
     if (audioUrl) {
       currentAudioRef.current?.pause()
       const audio = new Audio(audioUrl)
       currentAudioRef.current = audio
-      audio.play().catch((error) => console.error('Audio playback failed:', error))
-    }
-
-    if (currentPlayIndex < playQueueRef.current.length - 1) {
-      autoPlayTimerRef.current = window.setTimeout(() => setCurrentPlayIndex((index) => index + 1), playIntervalRef.current)
+      audio.ontimeupdate = () => {
+        if (Number.isFinite(audio.duration) && audio.duration > 0) {
+          setPlayProgress(Math.min(100, (audio.currentTime / audio.duration) * 100))
+        }
+      }
+      audio.onended = scheduleNext
+      audio.onerror = scheduleNext
+      if (!isPlayPausedRef.current) {
+        audio.play().catch((error) => {
+          console.error('Audio playback failed:', error)
+          scheduleNext()
+        })
+      }
     } else {
-      autoPlayTimerRef.current = window.setTimeout(stopAutoPlay, playIntervalRef.current)
+      scheduleNext()
     }
 
     return () => {
       if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current)
+      if (currentAudioRef.current) {
+        currentAudioRef.current.ontimeupdate = null
+        currentAudioRef.current.onended = null
+        currentAudioRef.current.onerror = null
+        currentAudioRef.current.pause()
+      }
     }
-  }, [currentPlayIndex, displayItems, isAutoPlaying, isPlayPaused, stopAutoPlay])
+  }, [currentPlayIndex, displayItems, isAutoPlaying, stopAutoPlay])
 
   useEffect(() => stopAutoPlay, [stopAutoPlay])
 
@@ -283,6 +375,27 @@ export const EduSentencesPage = () => {
               <span>Name</span>
               <input value={draftSearchQuery} onChange={(event) => setDraftSearchQuery(event.target.value)} type="search" placeholder="Name" aria-label="Name" />
             </label>
+            <label>
+              <span>{t('vocabulary.difficulty')}</span>
+              <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {difficultyLevels.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>{t('vocabulary.term')}</span>
+              <select value={draftTerm} onChange={(event) => setDraftTerm(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>{t('vocabulary.week')}</span>
+              <select value={draftWeek} onChange={(event) => setDraftWeek(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
             <div className="vocab-filter-actions">
               <button className="vocab-filter-btn vocab-filter-btn--primary" type="submit">
                 Search
@@ -329,8 +442,10 @@ export const EduSentencesPage = () => {
           currentSubtitle={currentPlaySubtitle}
           currentDescription={currentPlayDescription}
           currentMeta={currentPlayMeta}
+          progress={playProgress}
           onStop={stopAutoPlay}
           onTogglePause={handleTogglePlayPause}
+          onProgressSeek={handlePlayProgressSeek}
           onIntervalChange={handlePlayIntervalChange}
           onOrderChange={handlePlayOrderChange}
         />

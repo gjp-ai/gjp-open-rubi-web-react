@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { type CSSProperties, useEffect, useState } from 'react'
 import { useT } from '../../shared/i18n'
 import './eduPlayBar.css'
 
@@ -18,8 +18,10 @@ interface EduPlayBarProps {
   currentSubtitle?: string
   currentDescription?: string
   currentMeta?: string
+  progress?: number
   onStop: () => void
   onTogglePause: () => void
+  onProgressSeek?: (progress: number) => void
   onIntervalChange: (interval: number) => void
   onOrderChange: (order: EduPlayOrder) => void
   onPronunciationChange?: (pronunciation: EduPlayPronunciation) => void
@@ -36,8 +38,10 @@ export const EduPlayBar = ({
   currentSubtitle,
   currentDescription,
   currentMeta,
+  progress,
   onStop,
   onTogglePause,
+  onProgressSeek,
   onIntervalChange,
   onOrderChange,
   onPronunciationChange,
@@ -46,6 +50,7 @@ export const EduPlayBar = ({
   const [isFullScreen, setIsFullScreen] = useState(false)
   const safeTotal = Math.max(total, 0)
   const safeCurrent = safeTotal === 0 ? 0 : Math.min(currentIndex + 1, safeTotal)
+  const safeProgress = Math.max(0, Math.min(progress ?? 0, 100))
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -90,6 +95,21 @@ export const EduPlayBar = ({
       </button>
     </>
   )
+  const renderProgressControl = (className = 'edu-play-bar__progress') => onProgressSeek ? (
+    <label className={className}>
+      <span>{t('vocabulary.audio_progress')}</span>
+      <input
+        aria-label={t('vocabulary.audio_progress')}
+        max="100"
+        min="0"
+        onChange={(event) => onProgressSeek(Number(event.target.value))}
+        step="0.1"
+        style={{ '--play-progress': `${safeProgress}%` } as CSSProperties}
+        type="range"
+        value={safeProgress}
+      />
+    </label>
+  ) : null
 
   return (
     <>
@@ -113,6 +133,7 @@ export const EduPlayBar = ({
             <h2>{currentTitle}</h2>
             {currentSubtitle ? <p className="edu-play-fullscreen__subtitle">{currentSubtitle}</p> : null}
             {currentDescription ? <p className="edu-play-fullscreen__description">{currentDescription}</p> : null}
+            {renderProgressControl('edu-play-bar__progress edu-play-fullscreen__progress')}
           </div>
           <div className="edu-play-fullscreen__controls">
             {controls}
@@ -140,6 +161,8 @@ export const EduPlayBar = ({
           <strong>{currentTitle}</strong>
           {currentSubtitle ? <span>{currentSubtitle}</span> : null}
         </div>
+
+        {renderProgressControl()}
 
         {onPronunciationChange && pronunciation ? (
           <div className="edu-play-bar__group" role="group" aria-label={t('vocabulary.play_phonetics')}>

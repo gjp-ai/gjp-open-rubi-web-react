@@ -84,6 +84,69 @@
   font-size: 12px;
 }
 
+.edu-play-bar__progress {
+  width: min(220px, 22vw);
+  min-width: 140px;
+  display: grid;
+  gap: 5px;
+}
+
+.edu-play-bar__progress span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.edu-play-bar__progress input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.edu-play-bar__progress input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-primary) 0 var(--play-progress), #dfe5ef var(--play-progress) 100%);
+}
+
+.edu-play-bar__progress input[type='range']::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--color-primary);
+  box-shadow: 0 2px 8px var(--color-primary-muted);
+  appearance: none;
+}
+
+.edu-play-bar__progress input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #dfe5ef;
+}
+
+.edu-play-bar__progress input[type='range']::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.edu-play-bar__progress input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--color-primary);
+  box-shadow: 0 2px 8px var(--color-primary-muted);
+}
+
 .edu-play-bar__group {
   display: inline-flex;
   gap: 4px;
@@ -159,6 +222,14 @@
   border-color: rgba(148, 163, 184, 0.28);
   background: rgba(15, 23, 42, 0.82);
   color: #e5edf7;
+}
+
+.theme-dark .edu-play-bar__progress input[type='range']::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, var(--color-primary) 0 var(--play-progress), rgba(148, 163, 184, 0.28) var(--play-progress) 100%);
+}
+
+.theme-dark .edu-play-bar__progress input[type='range']::-moz-range-track {
+  background: rgba(148, 163, 184, 0.28);
 }
 
 .edu-play-fullscreen {
@@ -239,6 +310,10 @@
   line-height: 1.45;
 }
 
+.edu-play-fullscreen__progress {
+  width: min(560px, 82vw);
+}
+
 .edu-play-fullscreen__controls {
   display: flex;
   align-items: center;
@@ -307,6 +382,10 @@
   .edu-play-bar__now {
     min-width: 100%;
     max-width: 100%;
+  }
+
+  .edu-play-bar__progress {
+    width: 100%;
   }
 
   .edu-play-fullscreen {

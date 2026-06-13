@@ -357,6 +357,33 @@
   color: var(--color-primary);
 }
 
+.sentence-detail-modal--learning .detail-audio-progress {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.sentence-detail-modal--learning .detail-audio-progress__track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.sentence-detail-modal--learning .detail-audio-progress__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transition: width 0.16s linear;
+}
+
+.sentence-detail-modal--learning .detail-audio-progress__label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+}
+
 .sentence-detail-modal--learning .detail-section-grid {
   display: grid;
   gap: 12px;

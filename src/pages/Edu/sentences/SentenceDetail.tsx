@@ -26,7 +26,7 @@ const getPronunciations = (item: EduLearningItem): Pronunciation[] => {
   const rows: Pronunciation[] = []
   if (item.phoneticUs) rows.push({ label: 'US', value: item.phoneticUs, audioUrl: item.phoneticUsAudioUrl || item.phoneticAudioUrl })
   if (item.phoneticUk) rows.push({ label: 'UK', value: item.phoneticUk, audioUrl: item.phoneticUkAudioUrl })
-  return rows
+  return rows.length || !item.phonetic ? rows : [{ label: 'IPA', value: item.phonetic, audioUrl: item.phoneticAudioUrl }]
 }
 
 const getAutoPlayAudioUrl = (item: EduLearningItem) => item.phoneticUsAudioUrl || item.phoneticAudioUrl || item.phoneticUkAudioUrl
@@ -49,6 +49,9 @@ export const SentenceDetail = ({
   const t = useT()
   const [open, setOpen] = useState(initialOpen)
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true)
+  const [audioProgress, setAudioProgress] = useState(0)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [activeAudioLabel, setActiveAudioLabel] = useState('')
   const modalRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -57,20 +60,48 @@ export const SentenceDetail = ({
   const tags = splitTags(sentence.tags)
   const hasMeta = tags.length > 0 || sentence.term || sentence.week || sentence.difficultyLevel
 
-  const playAudio = useCallback((audioUrl?: string | null) => {
+  const resetAudioState = useCallback(() => {
+    setAudioProgress(0)
+    setIsSpeaking(false)
+    setActiveAudioLabel('')
+  }, [])
+
+  const playAudio = useCallback((audioUrl?: string | null, label = '') => {
     if (!audioUrl) return
     audioRef.current?.pause()
-    audioRef.current = new Audio(audioUrl)
-    audioRef.current.play().catch((error) => console.error('Audio playback failed:', error))
-  }, [])
+    const audio = new Audio(audioUrl)
+    audioRef.current = audio
+    setAudioProgress(0)
+    setIsSpeaking(true)
+    setActiveAudioLabel(label)
+    audio.ontimeupdate = () => {
+      if (!audio.duration || Number.isNaN(audio.duration)) return
+      setAudioProgress(Math.min(100, (audio.currentTime / audio.duration) * 100))
+    }
+    audio.onended = () => {
+      setAudioProgress(100)
+      setIsSpeaking(false)
+    }
+    audio.onerror = resetAudioState
+    audio.play().catch((error) => {
+      console.error('Audio playback failed:', error)
+      resetAudioState()
+    })
+  }, [resetAudioState])
 
   useEffect(() => {
     if (!autoPlayEnabled) return undefined
     const audioUrl = getAutoPlayAudioUrl(sentence)
     if (!audioUrl) return undefined
-    const timer = window.setTimeout(() => playAudio(audioUrl), 180)
+    const timer = window.setTimeout(() => playAudio(audioUrl, t('vocabulary.auto_play')), 180)
     return () => window.clearTimeout(timer)
-  }, [autoPlayEnabled, playAudio, sentence])
+  }, [autoPlayEnabled, playAudio, sentence, t])
+
+  useEffect(() => {
+    audioRef.current?.pause()
+    audioRef.current = null
+    resetAudioState()
+  }, [resetAudioState, sentence.id])
 
   useEffect(() => {
     previousActiveElement.current = document.activeElement as HTMLElement
@@ -129,7 +160,7 @@ export const SentenceDetail = ({
                       <span className="detail-pronunciation-label">{item.label}</span>
                       <span className="detail-phonetic">/{htmlToText(item.value)}/</span>
                       {item.audioUrl ? (
-                        <button className="detail-audio-btn detail-audio-btn--large" onClick={() => playAudio(item.audioUrl)} title={`${t('vocabulary.play_pronunciation')} ${item.label}`} type="button">
+                        <button className="detail-audio-btn detail-audio-btn--large" onClick={() => playAudio(item.audioUrl, item.label)} title={`${t('vocabulary.play_pronunciation')} ${item.label}`} type="button">
                           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
                             <path d="M15.54 8.46a5 5 0 0 1 0 7.07M18.07 5.93a9 9 0 0 1 0 12.73" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -140,6 +171,12 @@ export const SentenceDetail = ({
                   ))}
                 </div>
               ) : null}
+              <div className="detail-audio-progress" aria-label={t('vocabulary.audio_progress')}>
+                <div className="detail-audio-progress__track">
+                  <span style={{ width: `${audioProgress}%` }} />
+                </div>
+                <span className="detail-audio-progress__label">{isSpeaking ? `${t('vocabulary.speaking')}${activeAudioLabel ? ` · ${activeAudioLabel}` : ''}` : t('vocabulary.ready_to_speak')}</span>
+              </div>
             </div>
           </div>
 
