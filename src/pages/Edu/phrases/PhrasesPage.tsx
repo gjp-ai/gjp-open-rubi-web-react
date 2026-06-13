@@ -1,4 +1,4 @@
-import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { EduLearningItem } from '../../../shared/data/types'
 import { useAppSettings } from '../../../shared/contexts/AppSettings'
 import { useUIContext } from '../../../shared/contexts/UIContext'
@@ -34,8 +34,10 @@ export const EduPhrasesPage = () => {
   const { getTags } = useAppSettings()
   const t = useT()
   const [searchQuery, setSearchQuery] = useState('')
+  const [draftSearchQuery, setDraftSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
+  const [showSortMenu, setShowSortMenu] = useState(false)
   const [isExpandedView, setIsExpandedView] = useState(true)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [showIntervalModal, setShowIntervalModal] = useState(false)
@@ -67,7 +69,7 @@ export const EduPhrasesPage = () => {
   } = usePagedFetch(fetcher, { initialPageSize: 60, skeletonCount: 12 })
 
   const displayItems = useMemo(() => {
-    const query = searchQuery.trim()
+    const query = draftSearchQuery.trim()
     const filtered = items.filter((item) => item.lang === language && matches(item, query))
     const tagFiltered = filtered.filter((item) => hasSelectedTags(item.tags, selectedTags))
     switch (sortOrder) {
@@ -78,10 +80,11 @@ export const EduPhrasesPage = () => {
       default:
         return [...tagFiltered].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     }
-  }, [items, language, searchQuery, selectedTags, sortOrder])
+  }, [draftSearchQuery, items, language, selectedTags, sortOrder])
 
-  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
+  const applyFilters = (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault()
+    setSearchQuery(draftSearchQuery)
     setCurrentPage(1)
   }
 
@@ -92,8 +95,10 @@ export const EduPhrasesPage = () => {
 
   const resetFilters = () => {
     setSearchQuery('')
+    setDraftSearchQuery('')
     setSelectedTags([])
     setSortOrder('displayOrder')
+    setShowSortMenu(false)
     setCurrentPage(1)
   }
 
@@ -189,6 +194,39 @@ export const EduPhrasesPage = () => {
             ))}
           </div>
           <div className="vocab-actions">
+            <div className="vocab-sort-menu">
+              <button className={`vocab-action${showSortMenu ? ' active' : ''}`} onClick={() => setShowSortMenu((value) => !value)} type="button" title={t('edu.sort_label')} aria-label={t('edu.sort_label')} aria-expanded={showSortMenu}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="5" cy="12" r="2" fill="currentColor" />
+                  <circle cx="12" cy="12" r="2" fill="currentColor" />
+                  <circle cx="19" cy="12" r="2" fill="currentColor" />
+                </svg>
+              </button>
+              {showSortMenu ? (
+                <div className="vocab-sort-dropdown" role="menu">
+                  <span>{t('edu.sort_label')}</span>
+                  {[
+                    { value: 'displayOrder' as SortOrder, label: t('edu.sort.displayOrder') },
+                    { value: 'alpha' as SortOrder, label: t('edu.sort.alpha') },
+                    { value: 'recent' as SortOrder, label: t('edu.sort.recency') },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      className={sortOrder === option.value ? 'active' : ''}
+                      onClick={() => {
+                        setSortOrder(option.value)
+                        setShowSortMenu(false)
+                      }}
+                      role="menuitemradio"
+                      aria-checked={sortOrder === option.value}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
             <button className={`vocab-action${isExpandedView ? ' active' : ''}`} onClick={() => setIsExpandedView((value) => !value)} type="button" title={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')} aria-label={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
             </button>
@@ -198,29 +236,26 @@ export const EduPhrasesPage = () => {
             <button className={`vocab-action${isAutoPlaying ? ' active playing' : ''}`} onClick={handleAutoPlay} type="button" disabled={displayItems.length === 0} title={isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} aria-label={isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">{isAutoPlaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /> : <path d="M8 5v14l11-7Z" fill="currentColor" />}</svg>
             </button>
-            <button className="vocab-action" onClick={resetFilters} type="button" title={t('vocabulary.reset')} aria-label={t('vocabulary.reset')}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.35-5.65L4 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><path d="M4 4v4h4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-            </button>
             <button className={`vocab-action${showAdvancedFilters ? ' active' : ''}`} onClick={() => setShowAdvancedFilters((value) => !value)} type="button" title={t('vocabulary.filters')} aria-label={t('vocabulary.filters')}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v5l-4 2v-7Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
             </button>
           </div>
         </div>
         {showAdvancedFilters ? (
-          <div className="vocab-filter-grid">
+          <form className="vocab-filter-grid" onSubmit={applyFilters}>
             <label className="vocab-filter-grid__search">
-              <span>{t('edu.search_placeholder')}</span>
-              <input value={searchQuery} onChange={handleSearch} type="search" placeholder={t('edu.search_placeholder')} aria-label={t('edu.search_placeholder')} />
+              <span>Name</span>
+              <input value={draftSearchQuery} onChange={(event) => setDraftSearchQuery(event.target.value)} type="search" placeholder="Name" aria-label="Name" />
             </label>
-            <label>
-              <span>{t('edu.sort_label')}</span>
-              <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
-                <option value="displayOrder">{t('edu.sort.displayOrder')}</option>
-                <option value="alpha">{t('edu.sort.alpha')}</option>
-                <option value="recent">{t('edu.sort.recency')}</option>
-              </select>
-            </label>
-          </div>
+            <div className="vocab-filter-actions">
+              <button className="vocab-filter-btn vocab-filter-btn--primary" type="submit">
+                Search
+              </button>
+              <button className="vocab-filter-btn" onClick={resetFilters} type="button">
+                {t('vocabulary.reset')}
+              </button>
+            </div>
+          </form>
         ) : null}
       </section>
 

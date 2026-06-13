@@ -1,4 +1,4 @@
-import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppSettings } from '../../../shared/contexts/AppSettings'
 import { useUIContext } from '../../../shared/contexts/UIContext'
 import { useT } from '../../../shared/i18n'
@@ -41,15 +41,21 @@ export const EduVocabulariesPage = () => {
   const { getTags, getValue } = useAppSettings()
   const t = useT()
   const [searchQuery, setSearchQuery] = useState('')
+  const [draftSearchQuery, setDraftSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
   const [direction, setDirection] = useState<Direction>('asc')
   const [term, setTerm] = useState('')
+  const [draftTerm, setDraftTerm] = useState('')
   const [week, setWeek] = useState('')
+  const [draftWeek, setDraftWeek] = useState('')
   const [partOfSpeech, setPartOfSpeech] = useState('')
+  const [draftPartOfSpeech, setDraftPartOfSpeech] = useState('')
   const [difficultyLevel, setDifficultyLevel] = useState('')
+  const [draftDifficultyLevel, setDraftDifficultyLevel] = useState('')
   const [isExpandedView, setIsExpandedView] = useState(true)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [showSortMenu, setShowSortMenu] = useState(false)
   const [showIntervalModal, setShowIntervalModal] = useState(false)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [currentPlayIndex, setCurrentPlayIndex] = useState(0)
@@ -60,6 +66,15 @@ export const EduVocabulariesPage = () => {
   const randomOrderRef = useRef<number[]>([])
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTags[0]
+  const backendFilters = useMemo(
+    () => ({
+      term: term || undefined,
+      week: week || undefined,
+      partOfSpeech: partOfSpeech || undefined,
+      difficultyLevel: difficultyLevel || undefined,
+    }),
+    [difficultyLevel, partOfSpeech, term, week],
+  )
   const sectionTags = getTags('vocabulary_tags')
   const difficultyLevels = useMemo(
     () =>
@@ -72,8 +87,8 @@ export const EduVocabulariesPage = () => {
 
   const fetcher = useCallback(
     (page: number, size: number, lang: string, signal: AbortSignal) =>
-      getEduLearningItems('vocabularies', page, size, backendSearchQuery, backendTag, lang, signal),
-    [backendSearchQuery, backendTag],
+      getEduLearningItems('vocabularies', page, size, backendSearchQuery, backendTag, lang, signal, backendFilters),
+    [backendSearchQuery, backendTag, backendFilters],
   )
 
   const {
@@ -90,13 +105,13 @@ export const EduVocabulariesPage = () => {
   } = usePagedFetch<VocabularyItem>(fetcher, { initialPageSize: 50, skeletonCount: 12 })
 
   const displayItems = useMemo(() => {
-    const query = searchQuery.trim()
+    const query = draftSearchQuery.trim()
     const filtered = items.filter((item) => {
       const matchesTags = hasSelectedTags(item.tags, selectedTags)
-      const matchesTerm = !term || String(item.term ?? '') === term
-      const matchesWeek = !week || String(item.week ?? '') === week
-      const matchesPartOfSpeech = !partOfSpeech || htmlToText(item.partOfSpeech).toLowerCase() === partOfSpeech.toLowerCase()
-      const matchesDifficulty = !difficultyLevel || item.difficultyLevel === difficultyLevel
+      const matchesTerm = !draftTerm || String(item.term ?? '') === draftTerm
+      const matchesWeek = !draftWeek || String(item.week ?? '') === draftWeek
+      const matchesPartOfSpeech = !draftPartOfSpeech || htmlToText(item.partOfSpeech).toLowerCase() === draftPartOfSpeech.toLowerCase()
+      const matchesDifficulty = !draftDifficultyLevel || item.difficultyLevel === draftDifficultyLevel
       return item.lang === language && matches(item, query) && matchesTags && matchesTerm && matchesWeek && matchesPartOfSpeech && matchesDifficulty
     })
 
@@ -112,22 +127,33 @@ export const EduVocabulariesPage = () => {
     })
 
     return direction === 'desc' ? sorted.reverse() : sorted
-  }, [difficultyLevel, direction, items, language, partOfSpeech, searchQuery, selectedTags, sortOrder, term, week])
+  }, [direction, draftDifficultyLevel, draftPartOfSpeech, draftSearchQuery, draftTerm, draftWeek, items, language, selectedTags, sortOrder])
 
-  const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value)
+  const applyFilters = (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault()
+    setSearchQuery(draftSearchQuery)
+    setTerm(draftTerm)
+    setWeek(draftWeek)
+    setPartOfSpeech(draftPartOfSpeech)
+    setDifficultyLevel(draftDifficultyLevel)
     setCurrentPage(1)
   }
 
   const resetFilters = () => {
     setSearchQuery('')
+    setDraftSearchQuery('')
     setSelectedTags([])
     setSortOrder('displayOrder')
     setDirection('asc')
     setTerm('')
+    setDraftTerm('')
     setWeek('')
+    setDraftWeek('')
     setPartOfSpeech('')
+    setDraftPartOfSpeech('')
     setDifficultyLevel('')
+    setDraftDifficultyLevel('')
+    setShowSortMenu(false)
     setCurrentPage(1)
   }
 
@@ -255,6 +281,58 @@ export const EduVocabulariesPage = () => {
           </div>
 
           <div className="vocab-actions">
+            <div className="vocab-sort-menu">
+              <button className={`vocab-action${showSortMenu ? ' active' : ''}`} onClick={() => setShowSortMenu((value) => !value)} type="button" title={t('edu.sort_label')} aria-label={t('edu.sort_label')} aria-expanded={showSortMenu}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="5" cy="12" r="2" fill="currentColor" />
+                  <circle cx="12" cy="12" r="2" fill="currentColor" />
+                  <circle cx="19" cy="12" r="2" fill="currentColor" />
+                </svg>
+              </button>
+              {showSortMenu ? (
+                <div className="vocab-sort-dropdown" role="menu">
+                  <span>{t('edu.sort_label')}</span>
+                  {[
+                    { value: 'displayOrder' as SortOrder, label: t('edu.sort.displayOrder') },
+                    { value: 'alpha' as SortOrder, label: t('edu.sort.alpha') },
+                    { value: 'recent' as SortOrder, label: t('edu.sort.recency') },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      className={sortOrder === option.value ? 'active' : ''}
+                      onClick={() => {
+                        setSortOrder(option.value)
+                        setShowSortMenu(false)
+                      }}
+                      role="menuitemradio"
+                      aria-checked={sortOrder === option.value}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                  <span>{t('vocabulary.direction')}</span>
+                  {[
+                    { value: 'asc' as Direction, label: t('vocabulary.ascending') },
+                    { value: 'desc' as Direction, label: t('vocabulary.descending') },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      className={direction === option.value ? 'active' : ''}
+                      onClick={() => {
+                        setDirection(option.value)
+                        setShowSortMenu(false)
+                      }}
+                      role="menuitemradio"
+                      aria-checked={direction === option.value}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
             <button className={`vocab-action${isExpandedView ? ' active' : ''}`} onClick={() => setIsExpandedView((value) => !value)} type="button" title={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')} aria-label={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="5" y="5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" />
@@ -272,12 +350,6 @@ export const EduVocabulariesPage = () => {
                 {isAutoPlaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /> : <path d="M8 5v14l11-7Z" fill="currentColor" />}
               </svg>
             </button>
-            <button className="vocab-action" onClick={resetFilters} type="button" title={t('vocabulary.reset')} aria-label={t('vocabulary.reset')}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 12a8 8 0 1 0 2.35-5.65L4 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M4 4v4h4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
             <button className={`vocab-action${showAdvancedFilters ? ' active' : ''}`} onClick={() => setShowAdvancedFilters((value) => !value)} type="button" title={t('vocabulary.filters')} aria-label={t('vocabulary.filters')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 5h18l-7 8v5l-4 2v-7Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
@@ -287,28 +359,28 @@ export const EduVocabulariesPage = () => {
         </div>
 
         {showAdvancedFilters ? (
-        <div className="vocab-filter-grid">
+        <form className="vocab-filter-grid" onSubmit={applyFilters}>
           <label className="vocab-filter-grid__search">
-            <span>{t('edu.search_placeholder')}</span>
-            <input value={searchQuery} onChange={handleSearch} type="search" placeholder={t('edu.search_placeholder')} aria-label={t('edu.search_placeholder')} />
+            <span>Name</span>
+            <input value={draftSearchQuery} onChange={(event) => setDraftSearchQuery(event.target.value)} type="search" placeholder="Name" aria-label="Name" />
           </label>
           <label>
             <span>{t('vocabulary.term')}</span>
-            <select value={term} onChange={(event) => setTerm(event.target.value)}>
+            <select value={draftTerm} onChange={(event) => setDraftTerm(event.target.value)}>
               <option value="">{t('edu.filters.all')}</option>
               {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
           <label>
             <span>{t('vocabulary.week')}</span>
-            <select value={week} onChange={(event) => setWeek(event.target.value)}>
+            <select value={draftWeek} onChange={(event) => setDraftWeek(event.target.value)}>
               <option value="">{t('edu.filters.all')}</option>
               {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
           <label>
             <span>{t('vocabulary.part_of_speech')}</span>
-            <select value={partOfSpeech} onChange={(event) => setPartOfSpeech(event.target.value)}>
+            <select value={draftPartOfSpeech} onChange={(event) => setDraftPartOfSpeech(event.target.value)}>
               <option value="">{t('edu.filters.all')}</option>
               {['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition', 'conjunction', 'interjection'].map((value) => (
                 <option key={value} value={value}>{t(`vocabulary.${value}`)}</option>
@@ -317,27 +389,20 @@ export const EduVocabulariesPage = () => {
           </label>
           <label>
             <span>{t('vocabulary.difficulty')}</span>
-            <select value={difficultyLevel} onChange={(event) => setDifficultyLevel(event.target.value)}>
+            <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
               <option value="">{t('edu.filters.all')}</option>
               {difficultyLevels.map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
-          <label>
-            <span>{t('edu.sort_label')}</span>
-            <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
-              <option value="displayOrder">{t('edu.sort.displayOrder')}</option>
-              <option value="alpha">{t('edu.sort.alpha')}</option>
-              <option value="recent">{t('edu.sort.recency')}</option>
-            </select>
-          </label>
-          <label>
-            <span>{t('vocabulary.direction')}</span>
-            <select value={direction} onChange={(event) => setDirection(event.target.value as Direction)}>
-              <option value="asc">{t('vocabulary.ascending')}</option>
-              <option value="desc">{t('vocabulary.descending')}</option>
-            </select>
-          </label>
-        </div>
+          <div className="vocab-filter-actions">
+            <button className="vocab-filter-btn vocab-filter-btn--primary" type="submit">
+              Search
+            </button>
+            <button className="vocab-filter-btn" onClick={resetFilters} type="button">
+              {t('vocabulary.reset')}
+            </button>
+          </div>
+        </form>
         ) : null}
       </section>
 

@@ -211,6 +211,145 @@
   min-height: 0;
 }
 
+.mcq-search-sort-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 1rem 1.5rem;
+}
+
+.mcq-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.75rem;
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-surface);
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mcq-search-box:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.mcq-search-box svg {
+  flex-shrink: 0;
+  color: var(--color-muted);
+}
+
+.mcq-search-box input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.mcq-search-box input::placeholder {
+  color: var(--color-muted);
+}
+
+.mcq-search-clear {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mcq-search-clear:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.mcq-sort-menu {
+  position: relative;
+}
+
+.mcq-sort-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 190px;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.mcq-sort-dropdown span {
+  padding: 4px 8px 2px;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mcq-sort-dropdown button {
+  min-height: 34px;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcq-sort-dropdown button:hover,
+.mcq-sort-dropdown button.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.mcq-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mcq-filter-btn {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mcq-filter-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.mcq-filter-btn--primary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
 /* ═══════════════════════════════════════════════
    Grid: single column, full-width cards
    ═══════════════════════════════════════════════ */

@@ -4,6 +4,13 @@ import type { ApiListResponse, ApiPagedResponse, EduLearningItem, EduQuestion, E
 export type EduLearningKind = 'vocabularies' | 'phrases' | 'sentences'
 export type EduQuestionKind = 'multiple-choice-questions' | 'fill-blank-questions' | 'free-text-questions' | 'true-false-questions'
 
+export interface EduLearningFilters {
+  term?: string
+  week?: string
+  partOfSpeech?: string
+  difficultyLevel?: string
+}
+
 const learningPaths: Record<EduLearningKind, string> = {
   vocabularies: 'edu-vocabularies',
   phrases: 'edu-phrases',
@@ -25,9 +32,10 @@ export const getEduLearningItems = (
   tag?: string,
   lang?: string,
   signal?: AbortSignal,
+  filters?: EduLearningFilters,
 ) =>
   fetchOpenApiJson<ApiPagedResponse<EduLearningItem>>(
-    createOpenApiUrl(learningPaths[kind], { page, size, name: search, tags: tag, lang }),
+    createOpenApiUrl(learningPaths[kind], { page, size, name: search, tags: tag, lang, ...filters }),
     { signal },
   )
 

@@ -1,4 +1,4 @@
-import { type ChangeEvent, useCallback, useMemo, useState } from 'react'
+import { type FormEvent, useCallback, useMemo, useState } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useAppSettings } from '../../../shared/contexts/AppSettings'
 import { useUIContext } from '../../../shared/contexts/UIContext'
@@ -26,8 +26,10 @@ export const EduMultipleChoiceQuestionsPage = () => {
   const { getTags } = useAppSettings()
   const t = useT()
   const [searchQuery, setSearchQuery] = useState('')
+  const [draftSearchQuery, setDraftSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
+  const [showSortMenu, setShowSortMenu] = useState(false)
   const [isExpandedView, setIsExpandedView] = useState(false)
   const [showPrintDialog, setShowPrintDialog] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
@@ -46,7 +48,7 @@ export const EduMultipleChoiceQuestionsPage = () => {
     usePagedFetch(fetcher, { initialPageSize: 40, skeletonCount: 8 })
 
   const displayItems = useMemo(() => {
-    const query = searchQuery.trim()
+    const query = draftSearchQuery.trim()
     let filtered = items.filter((item) => item.lang === language && matches(item, query))
     filtered = filtered.filter((item) => hasSelectedTags(item.tags, selectedTags))
     switch (sortOrder) {
@@ -60,10 +62,11 @@ export const EduMultipleChoiceQuestionsPage = () => {
         filtered = [...filtered].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     }
     return filtered
-  }, [items, language, searchQuery, selectedTags, sortOrder])
+  }, [draftSearchQuery, items, language, selectedTags, sortOrder])
 
-  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
+  const applyFilters = (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault()
+    setSearchQuery(draftSearchQuery)
     setCurrentPage(1)
   }
 
@@ -89,8 +92,10 @@ export const EduMultipleChoiceQuestionsPage = () => {
 
   const handleReset = () => {
     setSearchQuery('')
+    setDraftSearchQuery('')
     setSelectedTags([])
     setSortOrder('displayOrder')
+    setShowSortMenu(false)
     setCurrentPage(1)
   }
 
@@ -132,6 +137,42 @@ export const EduMultipleChoiceQuestionsPage = () => {
           </div>
 
           <div className="header-actions">
+            <div className="mcq-sort-menu">
+              <button
+                type="button"
+                onClick={() => setShowSortMenu((value) => !value)}
+                title={t('edu.sort_label')}
+                aria-label={t('edu.sort_label')}
+                aria-expanded={showSortMenu}
+                className={`action-btn ${showSortMenu ? 'active' : ''}`}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="5" cy="12" r="2" fill="currentColor" />
+                  <circle cx="12" cy="12" r="2" fill="currentColor" />
+                  <circle cx="19" cy="12" r="2" fill="currentColor" />
+                </svg>
+              </button>
+              {showSortMenu ? (
+                <div className="mcq-sort-dropdown" role="menu">
+                  <span>{t('edu.sort_label')}</span>
+                  {(['displayOrder', 'alpha', 'recent'] as const).map((order) => (
+                    <button
+                      key={order}
+                      type="button"
+                      className={sortOrder === order ? 'active' : ''}
+                      onClick={() => {
+                        setSortOrder(order)
+                        setShowSortMenu(false)
+                      }}
+                      role="menuitemradio"
+                      aria-checked={sortOrder === order}
+                    >
+                      {t(`edu.sort.${order === 'recent' ? 'recency' : order}`)}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
             {/* Toggle expanded/compact view */}
             <button
               type="button"
@@ -171,19 +212,6 @@ export const EduMultipleChoiceQuestionsPage = () => {
                 <path d="M6 14h12v8H6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            {/* Reset */}
-            <button
-              type="button"
-              onClick={handleReset}
-              title={t('vocabulary.reset')}
-              aria-label={t('vocabulary.reset')}
-              className="action-btn"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M3 3v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
             {/* Filter toggle */}
             <button
               type="button"
@@ -203,37 +231,33 @@ export const EduMultipleChoiceQuestionsPage = () => {
         {showFilters && (
           <div className="filters-panel expanded">
             <div className="filters-panel-inner">
-              <div className="mcq-search-sort-row">
+              <form className="mcq-search-sort-row" onSubmit={applyFilters}>
                 <div className="mcq-search-box">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="m20 20-3.5-3.5M16 10.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <input
                     type="search"
-                    value={searchQuery}
-                    placeholder={t('edu.search_placeholder')}
-                    aria-label={t('edu.search_placeholder')}
-                    onChange={handleSearch}
+                    value={draftSearchQuery}
+                    placeholder="Question"
+                    aria-label="Question"
+                    onChange={(event) => setDraftSearchQuery(event.target.value)}
                   />
-                  {searchQuery && (
-                    <button type="button" className="mcq-search-clear" onClick={() => { setSearchQuery(''); setCurrentPage(1) }} aria-label={t('edu.search_clear')}>
+                  {draftSearchQuery && (
+                    <button type="button" className="mcq-search-clear" onClick={() => setDraftSearchQuery('')} aria-label={t('edu.search_clear')}>
                       ×
                     </button>
                   )}
                 </div>
-                <div className="mcq-sort-buttons">
-                  {(['displayOrder', 'alpha', 'recent'] as const).map((order) => (
-                    <button
-                      key={order}
-                      type="button"
-                      className={`mcq-sort-btn ${sortOrder === order ? 'active' : ''}`}
-                      onClick={() => setSortOrder(order)}
-                    >
-                      {t(`edu.sort.${order === 'recent' ? 'recency' : order}`)}
-                    </button>
-                  ))}
+                <div className="mcq-filter-actions">
+                  <button className="mcq-filter-btn mcq-filter-btn--primary" type="submit">
+                    Search
+                  </button>
+                  <button className="mcq-filter-btn" onClick={handleReset} type="button">
+                    {t('vocabulary.reset')}
+                  </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         )}

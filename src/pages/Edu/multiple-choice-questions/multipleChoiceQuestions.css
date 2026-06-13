@@ -310,6 +310,77 @@
   color: #fff;
 }
 
+.mcq-sort-menu {
+  position: relative;
+}
+
+.mcq-sort-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 190px;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.mcq-sort-dropdown span {
+  padding: 4px 8px 2px;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mcq-sort-dropdown button {
+  min-height: 34px;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcq-sort-dropdown button:hover,
+.mcq-sort-dropdown button.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.mcq-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mcq-filter-btn {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mcq-filter-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.mcq-filter-btn--primary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
 /* ═══════════════════════════════════════════════
    Grid: single column, full-width cards
    ═══════════════════════════════════════════════ */
