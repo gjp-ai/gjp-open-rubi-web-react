@@ -10,6 +10,7 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [isAnswered, setIsAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [selectedAnswer, setSelectedAnswer] = useState<'TRUE' | 'FALSE' | null>(null)
   const [showAnswer, setShowAnswer] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
 
@@ -18,14 +19,23 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
   const answer = (value: 'TRUE' | 'FALSE') => {
     if (isAnswered) return
     setIsCorrect(value === question.answer)
+    setSelectedAnswer(value)
     setIsAnswered(true)
   }
 
   const reset = () => {
     setIsAnswered(false)
     setIsCorrect(null)
+    setSelectedAnswer(null)
     setShowAnswer(false)
     setShowExplanation(false)
+  }
+
+  const getAnswerButtonClass = (value: 'TRUE' | 'FALSE') => {
+    const classes = [`tfq-btn tfq-btn-${value.toLowerCase()}`]
+    if (showAnswer && question.answer === value) classes.push('correct')
+    if (isAnswered && selectedAnswer === value && question.answer !== value) classes.push('incorrect')
+    return classes.join(' ')
   }
 
   const handleCardClick = useCallback(() => {
@@ -83,12 +93,12 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
             </div>
           </div>
 
-          {!isAnswered ? (
-            <div className="tfq-answer-buttons">
-              <button type="button" className="tfq-btn tfq-btn-true" onClick={(e) => { e.stopPropagation(); answer('TRUE') }}>✓ True</button>
-              <button type="button" className="tfq-btn tfq-btn-false" onClick={(e) => { e.stopPropagation(); answer('FALSE') }}>× False</button>
-            </div>
-          ) : (
+          <div className="tfq-answer-buttons">
+            <button type="button" className={getAnswerButtonClass('TRUE')} disabled={isAnswered} onClick={(e) => { e.stopPropagation(); answer('TRUE') }}>✓ True</button>
+            <button type="button" className={getAnswerButtonClass('FALSE')} disabled={isAnswered} onClick={(e) => { e.stopPropagation(); answer('FALSE') }}>× False</button>
+          </div>
+
+          {isAnswered ? (
             <div className="tfq-result-section animate-fade-in">
               <div className={`tfq-result ${isCorrect ? 'correct' : 'incorrect'}`}>
                 {isCorrect ? t('edu.correct') : t('edu.incorrect')}
@@ -96,13 +106,6 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
               <button type="button" className="tfq-reset-btn" onClick={(e) => { e.stopPropagation(); reset() }}>
                 {t('vocabulary.try_again')}
               </button>
-            </div>
-          )}
-
-          {showAnswer ? (
-            <div className="tfq-answer animate-fade-in">
-              <h4>{t('edu.answer')}</h4>
-              <div>{question.answer === 'TRUE' ? 'True' : 'False'}</div>
             </div>
           ) : null}
 

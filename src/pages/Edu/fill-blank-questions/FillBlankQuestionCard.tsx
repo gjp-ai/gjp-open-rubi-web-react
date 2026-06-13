@@ -31,6 +31,18 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
     setIsAnswered(true)
   }
 
+  const toggleAnswer = () => {
+    setShowAnswer((current) => {
+      const next = !current
+      setUserAnswers(next ? Array.from({ length: blankCount }, (_, index) => correctAnswers[index] || '') : new Array(blankCount).fill(''))
+      if (!next) {
+        setIsAnswered(false)
+        setIsCorrect(null)
+      }
+      return next
+    })
+  }
+
   const renderQuestionWithInputs = () => {
     let blankIndex = 0
     const parts = question.question.replace(/____/g, () => `<!--BLANK_${blankIndex++}-->`).split(/<!--BLANK_(\d+)-->/)
@@ -144,15 +156,6 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
             </div>
           ) : null}
 
-          {(showAnswer || (isAnswered && !isCorrect)) ? (
-            <div className="fbq-answer animate-fade-in">
-              <h4>{t('edu.answer')}</h4>
-              {correctAnswers.map((answer, index) => (
-                <div key={`${answer}-${index}`}>({index + 1}) {answer}</div>
-              ))}
-            </div>
-          ) : null}
-
           {showExplanation && question.explanation ? (
             <div className="fbq-explanation animate-fade-in" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
           ) : null}
@@ -163,7 +166,7 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
                 active={showAnswer}
                 disabled={correctAnswers.length === 0 || correctAnswers.every((answer) => !answer)}
                 label={t('edu.answer')}
-                onClick={() => setShowAnswer((current) => !current)}
+                onClick={toggleAnswer}
               >
                 <AnswerIcon />
               </QuestionToolButton>

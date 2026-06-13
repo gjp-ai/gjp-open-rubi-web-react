@@ -11,6 +11,8 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
   const t = useT()
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [mainAnswer, setMainAnswer] = useState('')
+  const [subAnswers, setSubAnswers] = useState<Record<string, string>>({})
+  const [revealedSubAnswers, setRevealedSubAnswers] = useState<Record<string, boolean>>({})
   const [showAnswer, setShowAnswer] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
   const subquestions = pairs
@@ -27,7 +29,25 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
   const reset = () => {
     setShowAnswer(false)
     setMainAnswer('')
+    setSubAnswers({})
+    setRevealedSubAnswers({})
     setShowExplanation(false)
+  }
+
+  const toggleMainAnswer = () => {
+    setShowAnswer((current) => {
+      const next = !current
+      setMainAnswer(next ? htmlToText(question.answer) : '')
+      return next
+    })
+  }
+
+  const toggleSubAnswer = (letter: string, answer?: string | null) => {
+    setRevealedSubAnswers((current) => {
+      const next = !current[letter]
+      setSubAnswers((answers) => ({ ...answers, [letter]: next ? htmlToText(answer) : '' }))
+      return { ...current, [letter]: next }
+    })
   }
 
   const handleCardClick = useCallback(() => {
@@ -96,9 +116,8 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
                     value={mainAnswer}
                     onChange={(event) => setMainAnswer(event.target.value)}
                     onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                {showAnswer && question.answer ? <AnswerBox answer={question.answer} /> : null}
+                    />
+                  </div>
               </>
             ) : null}
           </div>
@@ -115,10 +134,19 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
                     <textarea
                       className="ftq-user-input"
                       placeholder={t('vocabulary.your_answer')}
+                      value={subAnswers[letter] ?? ''}
+                      onChange={(event) => setSubAnswers((current) => ({ ...current, [letter]: event.target.value }))}
                       onClick={(e) => e.stopPropagation()}
                     />
+                    <QuestionToolButton
+                      active={Boolean(revealedSubAnswers[letter])}
+                      disabled={!answer}
+                      label={t('edu.answer')}
+                      onClick={() => toggleSubAnswer(letter, answer)}
+                    >
+                      <AnswerIcon />
+                    </QuestionToolButton>
                   </div>
-                  {showAnswer && answer ? <AnswerBox answer={answer} /> : null}
                 </section>
               ))}
             </div>
@@ -133,9 +161,10 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
 
           <QuestionMeta
             question={question}
+            hasSubquestions={hasSubquestions}
             showAnswer={showAnswer}
             showExplanation={showExplanation}
-            onToggleAnswer={() => setShowAnswer((current) => !current)}
+            onToggleAnswer={toggleMainAnswer}
             onToggleExplanation={() => setShowExplanation((current) => !current)}
           />
         </div>
@@ -144,17 +173,8 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
   )
 }
 
-const AnswerBox = ({ answer }: { answer: string }) => {
-  const t = useT()
-  return (
-    <div className="ftq-exam-answer-box animate-fade-in">
-      <span>{t('edu.answer')}:</span>
-      <div dangerouslySetInnerHTML={renderHtml(answer)} />
-    </div>
-  )
-}
-
 const QuestionMeta = ({
+  hasSubquestions,
   onToggleAnswer,
   onToggleExplanation,
   question,
@@ -163,6 +183,7 @@ const QuestionMeta = ({
 }: {
   onToggleAnswer: () => void
   onToggleExplanation: () => void
+  hasSubquestions: boolean
   question: EduQuestion
   showAnswer: boolean
   showExplanation: boolean
@@ -171,14 +192,16 @@ const QuestionMeta = ({
   return (
     <div className="ftq-metadata">
       <QuestionTools>
-        <QuestionToolButton
-          active={showAnswer}
-          disabled={!question.answer && !pairs.some((letter) => htmlToText(question[`answer${letter}` as keyof EduQuestion] as string | null | undefined).length > 0)}
-          label={t('edu.answer')}
-          onClick={onToggleAnswer}
-        >
-          <AnswerIcon />
-        </QuestionToolButton>
+        {!hasSubquestions ? (
+          <QuestionToolButton
+            active={showAnswer}
+            disabled={!question.answer}
+            label={t('edu.answer')}
+            onClick={onToggleAnswer}
+          >
+            <AnswerIcon />
+          </QuestionToolButton>
+        ) : null}
         <QuestionToolButton
           active={showExplanation}
           disabled={!question.explanation}

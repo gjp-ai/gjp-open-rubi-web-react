@@ -609,6 +609,25 @@
   box-shadow: var(--shadow-sm);
 }
 
+.tfq-btn:disabled {
+  cursor: default;
+}
+
+.tfq-btn.correct,
+.tfq-btn.correct:disabled {
+  border-color: hsl(142, 76%, 45%);
+  background: hsl(142, 70%, 97%);
+  color: hsl(142, 76%, 28%);
+  box-shadow: var(--shadow-sm);
+}
+
+.tfq-btn.incorrect,
+.tfq-btn.incorrect:disabled {
+  border-color: hsl(346, 84%, 61%);
+  background: hsl(346, 84%, 98%);
+  color: hsl(346, 84%, 40%);
+}
+
 .tfq-btn:focus-visible {
   box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
@@ -632,6 +651,20 @@
 }
 
 .theme-dark .tfq-btn-false:hover {
+  border-color: hsl(346, 84%, 61%);
+  background: hsla(346, 84%, 61%, 0.15);
+  color: hsl(346, 84%, 85%);
+}
+
+.theme-dark .tfq-btn.correct,
+.theme-dark .tfq-btn.correct:disabled {
+  border-color: hsl(142, 70%, 45%);
+  background: hsla(142, 70%, 45%, 0.15);
+  color: hsl(142, 70%, 80%);
+}
+
+.theme-dark .tfq-btn.incorrect,
+.theme-dark .tfq-btn.incorrect:disabled {
   border-color: hsl(346, 84%, 61%);
   background: hsla(346, 84%, 61%, 0.15);
   color: hsl(346, 84%, 85%);
@@ -678,26 +711,6 @@
   background: hsla(346, 84%, 61%, 0.1);
   color: hsl(346, 84%, 85%);
   border-color: hsl(346, 84%, 61%);
-}
-
-.tfq-answer {
-  padding: 1.25rem;
-  background: var(--color-surface-alt);
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
-}
-
-.tfq-answer h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.95rem;
-  color: var(--color-text);
-  font-weight: 700;
-}
-
-.tfq-answer div {
-  color: var(--color-text-secondary);
-  font-size: 0.9375rem;
-  font-weight: 700;
 }
 
 .tfq-explanation {

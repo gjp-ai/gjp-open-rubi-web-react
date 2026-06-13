@@ -159,8 +159,6 @@ export const MultipleChoiceQuestionCard = ({
             })}
           </div>
 
-          {showAnswer ? <AnswerBox question={question} /> : null}
-
           {/* Answer Feedback */}
           {isCorrect && (
             <div className="mcq-feedback correct animate-fade-in">
@@ -219,20 +217,6 @@ export const MultipleChoiceQuestionCard = ({
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-const AnswerBox = ({ question }: { question: EduQuestion }) => {
-  const t = useT()
-  const answerValue = question[`option${question.answer}` as keyof EduQuestion] as string | null | undefined
-  return (
-    <div className="mcq-answer animate-fade-in">
-      <h4>{t('edu.answer')}</h4>
-      <div>
-        <strong>{question.answer}</strong>
-        {answerValue ? <span dangerouslySetInnerHTML={renderHtml(answerValue)} /> : null}
       </div>
     </div>
   )
