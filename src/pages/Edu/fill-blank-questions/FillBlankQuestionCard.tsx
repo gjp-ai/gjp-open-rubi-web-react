@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
+import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
+import '../question-common/questionCardTools.css'
 
 export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
@@ -9,6 +11,8 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
   const [userAnswers, setUserAnswers] = useState<string[]>([])
   const [isAnswered, setIsAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [showAnswer, setShowAnswer] = useState(false)
+  const [showExplanation, setShowExplanation] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const { blankCount, correctAnswers } = useMemo(() => {
     const count = (htmlToText(question.question).match(/____/g) || []).length
@@ -59,6 +63,8 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
     setUserAnswers(new Array(blankCount).fill(''))
     setIsAnswered(false)
     setIsCorrect(null)
+    setShowAnswer(false)
+    setShowExplanation(false)
     setTimeout(() => inputRefs.current[0]?.focus(), 0)
   }
 
@@ -104,6 +110,24 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
           <div className="fbq-card-header-expanded">
             {renderQuestionWithInputs()}
             <div className="fbq-header-controls">
+              <QuestionTools>
+                <QuestionToolButton
+                  active={showAnswer}
+                  disabled={correctAnswers.length === 0 || correctAnswers.every((answer) => !answer)}
+                  label={t('edu.answer')}
+                  onClick={() => setShowAnswer((current) => !current)}
+                >
+                  <AnswerIcon />
+                </QuestionToolButton>
+                <QuestionToolButton
+                  active={showExplanation}
+                  disabled={!question.explanation}
+                  label={t('edu.explanation')}
+                  onClick={() => setShowExplanation((current) => !current)}
+                >
+                  <ExplanationIcon />
+                </QuestionToolButton>
+              </QuestionTools>
               {!isAnswered ? (
                 <button
                   type="button"
@@ -132,21 +156,23 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
               <div className={`fbq-result ${isCorrect ? 'correct' : 'incorrect'}`}>
                 {isCorrect ? t('edu.correct') : t('edu.incorrect')}
               </div>
-              {!isCorrect ? (
-                <div className="fbq-answer">
-                  <h4>{t('edu.answer')}</h4>
-                  {correctAnswers.map((answer, index) => (
-                    <div key={`${answer}-${index}`}>({index + 1}) {answer}</div>
-                  ))}
-                </div>
-              ) : null}
-              {question.explanation ? (
-                <div className="fbq-explanation" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
-              ) : null}
               <button type="button" className="fbq-reset-btn" onClick={reset}>
                 {t('vocabulary.try_again')}
               </button>
             </div>
+          ) : null}
+
+          {(showAnswer || (isAnswered && !isCorrect)) ? (
+            <div className="fbq-answer animate-fade-in">
+              <h4>{t('edu.answer')}</h4>
+              {correctAnswers.map((answer, index) => (
+                <div key={`${answer}-${index}`}>({index + 1}) {answer}</div>
+              ))}
+            </div>
+          ) : null}
+
+          {showExplanation && question.explanation ? (
+            <div className="fbq-explanation animate-fade-in" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
           ) : null}
 
           <div className="fbq-metadata">

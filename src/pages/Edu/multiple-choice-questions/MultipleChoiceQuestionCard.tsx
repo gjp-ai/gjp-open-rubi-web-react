@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
+import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
+import '../question-common/questionCardTools.css'
 import './MultipleChoiceQuestionCard.css'
 
 const options = ['A', 'B', 'C', 'D'] as const
@@ -18,6 +20,8 @@ export const MultipleChoiceQuestionCard = ({
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([])
   const [isCorrect, setIsCorrect] = useState(false)
   const [errorOption, setErrorOption] = useState<string | null>(null)
+  const [showAnswer, setShowAnswer] = useState(false)
+  const [showExplanation, setShowExplanation] = useState(false)
   const errorTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
@@ -77,6 +81,14 @@ export const MultipleChoiceQuestionCard = ({
     [selectedAnswers, question.answer, errorOption],
   )
 
+  const getDisplayOptionClass = useCallback(
+    (option: string) => {
+      if (showAnswer && option === question.answer) return 'mcq-option correct'
+      return getOptionClass(option)
+    },
+    [getOptionClass, question.answer, showAnswer],
+  )
+
   const toggleExpanded = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -86,6 +98,8 @@ export const MultipleChoiceQuestionCard = ({
         setSelectedAnswers([])
         setIsCorrect(false)
         setErrorOption(null)
+        setShowAnswer(false)
+        setShowExplanation(false)
         if (errorTimeoutRef.current) {
           clearTimeout(errorTimeoutRef.current)
           errorTimeoutRef.current = null
@@ -128,13 +142,13 @@ export const MultipleChoiceQuestionCard = ({
               return (
                 <button
                   key={letter}
-                  className={getOptionClass(letter)}
+                  className={getDisplayOptionClass(letter)}
                   onClick={(e) => handleOptionClick(e, letter)}
                   type="button"
                 >
                   <span className="option-letter">{letter}</span>
                   <span className="option-content" dangerouslySetInnerHTML={renderHtml(value)} />
-                  {selectedAnswers.includes(letter) && question.answer === letter && (
+                  {(selectedAnswers.includes(letter) || showAnswer) && question.answer === letter && (
                     <span className="option-indicator correct-indicator">✓</span>
                   )}
                   {selectedAnswers.includes(letter) && question.answer !== letter && (
@@ -145,6 +159,27 @@ export const MultipleChoiceQuestionCard = ({
             })}
           </div>
 
+          <QuestionTools>
+            <QuestionToolButton
+              active={showAnswer}
+              disabled={!question.answer}
+              label={t('edu.answer')}
+              onClick={() => setShowAnswer((current) => !current)}
+            >
+              <AnswerIcon />
+            </QuestionToolButton>
+            <QuestionToolButton
+              active={showExplanation}
+              disabled={!question.explanation}
+              label={t('edu.explanation')}
+              onClick={() => setShowExplanation((current) => !current)}
+            >
+              <ExplanationIcon />
+            </QuestionToolButton>
+          </QuestionTools>
+
+          {showAnswer ? <AnswerBox question={question} /> : null}
+
           {/* Answer Feedback */}
           {isCorrect && (
             <div className="mcq-feedback correct animate-fade-in">
@@ -154,7 +189,7 @@ export const MultipleChoiceQuestionCard = ({
           )}
 
           {/* Explanation */}
-          {isCorrect && question.explanation && (
+          {(showExplanation || isCorrect) && question.explanation && (
             <div className="mcq-explanation animate-fade-in">
               <h4>{t('edu.explanation')}</h4>
               <div className="explanation-content" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
@@ -183,6 +218,20 @@ export const MultipleChoiceQuestionCard = ({
             )}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+const AnswerBox = ({ question }: { question: EduQuestion }) => {
+  const t = useT()
+  const answerValue = question[`option${question.answer}` as keyof EduQuestion] as string | null | undefined
+  return (
+    <div className="mcq-answer animate-fade-in">
+      <h4>{t('edu.answer')}</h4>
+      <div>
+        <strong>{question.answer}</strong>
+        {answerValue ? <span dangerouslySetInnerHTML={renderHtml(answerValue)} /> : null}
       </div>
     </div>
   )

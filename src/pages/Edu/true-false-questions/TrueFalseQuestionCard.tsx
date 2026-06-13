@@ -2,12 +2,16 @@ import { useEffect, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
+import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
+import '../question-common/questionCardTools.css'
 
 export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [isAnswered, setIsAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [showAnswer, setShowAnswer] = useState(false)
+  const [showExplanation, setShowExplanation] = useState(false)
 
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
 
@@ -20,6 +24,8 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
   const reset = () => {
     setIsAnswered(false)
     setIsCorrect(null)
+    setShowAnswer(false)
+    setShowExplanation(false)
   }
 
   const handleCardClick = useCallback(() => {
@@ -63,16 +69,36 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
         <div className="tfq-card-body-inner">
           <div className="tfq-card-header-expanded">
             <div className="tfq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
-            <button
-              type="button"
-              className="collapse-btn"
-              onClick={toggleExpanded}
-              aria-label={t('vocabulary.hide')}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 15l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
+            <div className="tfq-header-controls">
+              <QuestionTools>
+                <QuestionToolButton
+                  active={showAnswer}
+                  disabled={!question.answer}
+                  label={t('edu.answer')}
+                  onClick={() => setShowAnswer((current) => !current)}
+                >
+                  <AnswerIcon />
+                </QuestionToolButton>
+                <QuestionToolButton
+                  active={showExplanation}
+                  disabled={!question.explanation}
+                  label={t('edu.explanation')}
+                  onClick={() => setShowExplanation((current) => !current)}
+                >
+                  <ExplanationIcon />
+                </QuestionToolButton>
+              </QuestionTools>
+              <button
+                type="button"
+                className="collapse-btn"
+                onClick={toggleExpanded}
+                aria-label={t('vocabulary.hide')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 15l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
 
           {!isAnswered ? (
@@ -85,14 +111,22 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
               <div className={`tfq-result ${isCorrect ? 'correct' : 'incorrect'}`}>
                 {isCorrect ? t('edu.correct') : t('edu.incorrect')}
               </div>
-              {question.explanation ? (
-                <div className="tfq-explanation" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
-              ) : null}
               <button type="button" className="tfq-reset-btn" onClick={(e) => { e.stopPropagation(); reset() }}>
                 {t('vocabulary.try_again')}
               </button>
             </div>
           )}
+
+          {showAnswer ? (
+            <div className="tfq-answer animate-fade-in">
+              <h4>{t('edu.answer')}</h4>
+              <div>{question.answer === 'TRUE' ? 'True' : 'False'}</div>
+            </div>
+          ) : null}
+
+          {showExplanation && question.explanation ? (
+            <div className="tfq-explanation animate-fade-in" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
+          ) : null}
 
           <div className="tfq-metadata">
             {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
