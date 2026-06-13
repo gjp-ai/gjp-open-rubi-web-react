@@ -5,7 +5,7 @@ import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
 import { getEduLearningItems } from '../eduApi'
-import { htmlToText, splitTags } from '../eduUtils'
+import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { generatePrintSheet, openPrintWindow } from './printSheet'
 import { VocabularyCard } from './VocabularyCard'
 import type { PronunciationVariant, VocabularyItem } from './types'
@@ -59,7 +59,7 @@ export const EduVocabulariesPage = () => {
   const autoPlayTimerRef = useRef<number | null>(null)
   const randomOrderRef = useRef<number[]>([])
   const backendSearchQuery = searchQuery.trim() || undefined
-  const backendTag = selectedTags.length > 0 ? selectedTags.join(',') : undefined
+  const backendTag = selectedTags[0]
   const sectionTags = getTags('vocabulary_tags')
   const difficultyLevels = useMemo(
     () =>
@@ -91,10 +91,8 @@ export const EduVocabulariesPage = () => {
 
   const displayItems = useMemo(() => {
     const query = searchQuery.trim()
-    const selectedTagSet = new Set(selectedTags.map((tag) => tag.toLowerCase()))
     const filtered = items.filter((item) => {
-      const itemTags = splitTags(item.tags).map((tag) => tag.toLowerCase())
-      const matchesTags = selectedTagSet.size === 0 || itemTags.some((tag) => selectedTagSet.has(tag))
+      const matchesTags = hasSelectedTags(item.tags, selectedTags)
       const matchesTerm = !term || String(item.term ?? '') === term
       const matchesWeek = !week || String(item.week ?? '') === week
       const matchesPartOfSpeech = !partOfSpeech || htmlToText(item.partOfSpeech).toLowerCase() === partOfSpeech.toLowerCase()

@@ -6,7 +6,7 @@ import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
 import { getEduLearningItems, type EduLearningKind } from '../eduApi'
-import { htmlToText, splitTags } from '../eduUtils'
+import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { PhraseCard } from './PhraseCard'
 import { generatePrintSheet, openPrintWindow } from './printSheet'
 import './phrases.css'
@@ -44,7 +44,7 @@ export const EduPhrasesPage = () => {
   const [playInterval, setPlayInterval] = useState(5000)
   const autoPlayTimerRef = useRef<number | null>(null)
   const backendSearchQuery = searchQuery.trim() || undefined
-  const backendTag = selectedTags.length > 0 ? selectedTags.join(',') : undefined
+  const backendTag = selectedTags[0]
   const sectionTags = getTags(tagKeys[kind])
 
   const fetcher = useCallback(
@@ -69,10 +69,7 @@ export const EduPhrasesPage = () => {
   const displayItems = useMemo(() => {
     const query = searchQuery.trim()
     const filtered = items.filter((item) => item.lang === language && matches(item, query))
-    const selectedTagSet = new Set(selectedTags.map((tag) => tag.toLowerCase()))
-    const tagFiltered = selectedTagSet.size === 0
-      ? filtered
-      : filtered.filter((item) => splitTags(item.tags).map((tag) => tag.toLowerCase()).some((tag) => selectedTagSet.has(tag)))
+    const tagFiltered = filtered.filter((item) => hasSelectedTags(item.tags, selectedTags))
     switch (sortOrder) {
       case 'alpha':
         return [...tagFiltered].sort((a, b) => a.name.localeCompare(b.name, language === 'ZH' ? 'zh-CN' : 'en'))

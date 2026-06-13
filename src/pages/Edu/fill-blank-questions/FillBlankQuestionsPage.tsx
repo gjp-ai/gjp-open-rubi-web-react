@@ -6,7 +6,7 @@ import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
 import { getEduQuestions, type EduQuestionKind } from '../eduApi'
-import { htmlToText, splitTags } from '../eduUtils'
+import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { FillBlankQuestionCard } from './FillBlankQuestionCard'
 import { generatePrintExamSheet, openPrintWindow } from './printExamSheet'
 import './fillBlankQuestions.css'
@@ -26,14 +26,14 @@ export const EduFillBlankQuestionsPage = () => {
   const { getTags } = useAppSettings()
   const t = useT()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
   const [isExpandedView, setIsExpandedView] = useState(false)
   const [showPrintDialog, setShowPrintDialog] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [printOptions, setPrintOptions] = useState({ showAnswer: false, showExplanation: false })
   const backendSearchQuery = searchQuery.trim() || undefined
-  const backendTag = selectedTag ?? undefined
+  const backendTag = selectedTags[0]
   const sectionTags = getTags('edu_question_tags')
 
   const fetcher = useCallback(
@@ -48,9 +48,7 @@ export const EduFillBlankQuestionsPage = () => {
   const displayItems = useMemo(() => {
     const query = searchQuery.trim()
     let filtered = items.filter((item) => item.lang === language && matches(item, query))
-    if (selectedTag) {
-      filtered = filtered.filter((item) => splitTags(item.tags).map((tag) => tag.toLowerCase()).includes(selectedTag.toLowerCase()))
-    }
+    filtered = filtered.filter((item) => hasSelectedTags(item.tags, selectedTags))
     switch (sortOrder) {
       case 'alpha':
         filtered = [...filtered].sort((a, b) => htmlToText(a.question).localeCompare(htmlToText(b.question), language === 'ZH' ? 'zh-CN' : 'en'))
@@ -62,7 +60,7 @@ export const EduFillBlankQuestionsPage = () => {
         filtered = [...filtered].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     }
     return filtered
-  }, [items, language, searchQuery, selectedTag, sortOrder])
+  }, [items, language, searchQuery, selectedTags, sortOrder])
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
@@ -91,7 +89,7 @@ export const EduFillBlankQuestionsPage = () => {
 
   const handleReset = () => {
     setSearchQuery('')
-    setSelectedTag(null)
+    setSelectedTags([])
     setSortOrder('displayOrder')
     setCurrentPage(1)
   }
@@ -109,12 +107,15 @@ export const EduFillBlankQuestionsPage = () => {
             {sectionTags.length > 0 && (
               <div className="tags-scroll-area" role="group" aria-label={t('edu.tags_filter')}>
                 {sectionTags.map((tag) => {
-                  const isActive = selectedTag === tag
+                  const isActive = selectedTags.includes(tag)
                   return (
                     <button
                       key={tag}
                       className={`tag-chip ${isActive ? 'active' : ''}`}
-                      onClick={() => setSelectedTag(isActive ? null : tag)}
+                      onClick={() => {
+                        setSelectedTags((current) => (current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]))
+                        setCurrentPage(1)
+                      }}
                       aria-pressed={isActive}
                       type="button"
                     >
