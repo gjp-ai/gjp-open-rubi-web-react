@@ -269,7 +269,7 @@ export const EduVocabulariesPage = () => {
   const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL']
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
   const currentPlaySubtitle = currentPlayItem ? htmlToText(currentPlayItem.translation || currentPlayItem.easyMeaning || currentPlayItem.meaning) : ''
-  const currentPlayDescription = currentPlayItem ? htmlToText(currentPlayItem.definition || currentPlayItem.example || currentPlayItem.synonyms) : ''
+  const currentPlayDescription = currentPlayItem ? currentPlayItem.definition || currentPlayItem.example || currentPlayItem.synonyms || '' : ''
   const currentPlayMeta = currentPlayItem ? [currentPlayItem.partOfSpeech, currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
 
   return (

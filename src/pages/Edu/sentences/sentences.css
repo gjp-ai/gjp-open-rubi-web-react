@@ -121,7 +121,7 @@
 
 .sentence-card-sentence {
   line-height: 1.7;
-  font-size: 1.1rem;
+  font-size: 18px;
 }
 
 .sentence-detail-overlay {
@@ -866,7 +866,7 @@
 
 .sentence-card-sentence {
   color: #111418;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1.2;
   font-weight: 800;
 }
@@ -943,7 +943,7 @@
   }
 
   .sentence-card-sentence {
-    font-size: 21px;
+    font-size: 18px;
   }
 }
 
@@ -986,7 +986,7 @@
 
 .sentence-card-sentence {
   color: #111418;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.4;
   font-weight: 780;
 }

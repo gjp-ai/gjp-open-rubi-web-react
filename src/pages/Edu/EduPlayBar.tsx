@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react'
 import { useT } from '../../shared/i18n'
+import { renderHtml } from './eduUtils'
 import './eduPlayBar.css'
 
 export type EduPlayOrder = 'sequence' | 'random'
@@ -132,7 +133,7 @@ export const EduPlayBar = ({
             {currentMeta ? <span className="edu-play-fullscreen__meta">{currentMeta}</span> : null}
             <h2>{currentTitle}</h2>
             {currentSubtitle ? <p className="edu-play-fullscreen__subtitle">{currentSubtitle}</p> : null}
-            {currentDescription ? <p className="edu-play-fullscreen__description">{currentDescription}</p> : null}
+            {currentDescription ? <div className="edu-play-fullscreen__description" dangerouslySetInnerHTML={renderHtml(currentDescription)} /> : null}
             {renderProgressControl('edu-play-bar__progress edu-play-fullscreen__progress')}
           </div>
           <div className="edu-play-fullscreen__controls">

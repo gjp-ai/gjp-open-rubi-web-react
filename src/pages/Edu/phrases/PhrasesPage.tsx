@@ -244,7 +244,7 @@ export const EduPhrasesPage = () => {
   const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL', 'Phrase', 'Idiom']
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
   const currentPlaySubtitle = currentPlayItem ? htmlToText(currentPlayItem.translation || currentPlayItem.easyMeaning || currentPlayItem.meaning) : ''
-  const currentPlayDescription = currentPlayItem ? htmlToText(currentPlayItem.sentenceOne || currentPlayItem.sentenceTwo || currentPlayItem.explanation) : ''
+  const currentPlayDescription = currentPlayItem ? currentPlayItem.sentenceOne || currentPlayItem.sentenceTwo || currentPlayItem.explanation || '' : ''
   const currentPlayMeta = currentPlayItem ? [currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
 
   return (
