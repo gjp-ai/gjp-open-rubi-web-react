@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
@@ -46,6 +46,7 @@ export const FillBlankQuestionCard = ({ question, isExpandedView, lang }: { ques
                 onChange={(event) => setUserAnswers((current) => current.map((value, idx) => (idx === blank ? event.target.value : value)))}
                 disabled={isAnswered}
                 placeholder="____"
+                onClick={(e) => e.stopPropagation()}
               />
             )
           }
@@ -62,35 +63,102 @@ export const FillBlankQuestionCard = ({ question, isExpandedView, lang }: { ques
     setTimeout(() => inputRefs.current[0]?.focus(), 0)
   }
 
+  const handleCardClick = useCallback(() => {
+    if (!isExpanded) {
+      setIsExpanded(true)
+    }
+  }, [isExpanded])
+
+  const toggleExpanded = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setIsExpanded(!isExpanded)
+      if (isExpanded) {
+        reset()
+      }
+    },
+    [isExpanded, blankCount]
+  )
+
   return (
-    <div className={`fbq-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      {!isExpanded ? (
-        <button type="button" className="fbq-card-header" onClick={() => setIsExpanded(true)}>
-          <div className="fbq-card-question-preview">{htmlToText(question.question).slice(0, 180)}</div>
-          <span className="expand-icon">⌄</span>
-        </button>
-      ) : (
-        <div className="fbq-card-expanded">
+    <div
+      className={`fbq-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+      onClick={handleCardClick}
+    >
+      {/* Card Header (clickable to expand/collapse) */}
+      <button
+        className="fbq-card-header"
+        onClick={toggleExpanded}
+        type="button"
+        aria-expanded={isExpanded}
+        aria-label={t('vocabulary.view_details')}
+      >
+        <div className="fbq-card-question-preview">{htmlToText(question.question).slice(0, 180)}</div>
+        <svg className={`expand-icon ${isExpanded ? 'rotated' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9l-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {/* Slide-down Card Body wrapper */}
+      <div className="fbq-card-body-wrapper">
+        <div className="fbq-card-body-inner">
           <QuestionImages questionId={question.id} referenceKey="fillBlankQuestionId" lang={lang} />
+
           <div className="fbq-card-header-expanded">
             {renderQuestionWithInputs()}
             <div className="fbq-header-controls">
-              {!isAnswered ? <button type="button" className="fbq-check-btn" onClick={checkAnswers} disabled={!userAnswers.every((answer) => answer.trim())}>✓</button> : null}
-              <button type="button" className="collapse-btn" onClick={() => { setIsExpanded(false); reset() }}>⌃</button>
+              {!isAnswered ? (
+                <button
+                  type="button"
+                  className="fbq-check-btn"
+                  onClick={checkAnswers}
+                  disabled={!userAnswers.every((answer) => answer.trim())}
+                >
+                  ✓
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="collapse-btn"
+                onClick={toggleExpanded}
+                aria-label={t('vocabulary.hide')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 15l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
             </div>
           </div>
+
           {isAnswered ? (
-            <>
-              <div className={`fbq-result ${isCorrect ? 'correct' : 'incorrect'}`}>{isCorrect ? t('edu.correct') : t('edu.incorrect')}</div>
-              {!isCorrect ? <div className="fbq-answer"><h4>{t('edu.answer')}</h4>{correctAnswers.map((answer, index) => <div key={`${answer}-${index}`}>({index + 1}) {answer}</div>)}</div> : null}
-              {question.explanation ? <div className="fbq-explanation" dangerouslySetInnerHTML={renderHtml(question.explanation)} /> : null}
-              <button type="button" className="fbq-reset-btn" onClick={reset}>{t('vocabulary.try_again')}</button>
-            </>
+            <div className="fbq-result-section animate-fade-in">
+              <div className={`fbq-result ${isCorrect ? 'correct' : 'incorrect'}`}>
+                {isCorrect ? t('edu.correct') : t('edu.incorrect')}
+              </div>
+              {!isCorrect ? (
+                <div className="fbq-answer">
+                  <h4>{t('edu.answer')}</h4>
+                  {correctAnswers.map((answer, index) => (
+                    <div key={`${answer}-${index}`}>({index + 1}) {answer}</div>
+                  ))}
+                </div>
+              ) : null}
+              {question.explanation ? (
+                <div className="fbq-explanation" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
+              ) : null}
+              <button type="button" className="fbq-reset-btn" onClick={reset}>
+                {t('vocabulary.try_again')}
+              </button>
+            </div>
           ) : null}
-          <div className="fbq-metadata">{question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}</div>
+
+          <div className="fbq-metadata">
+            {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
+export default FillBlankQuestionCard

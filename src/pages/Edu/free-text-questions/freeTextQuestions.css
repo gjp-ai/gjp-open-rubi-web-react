@@ -251,22 +251,25 @@
   width: 100%;
   overflow: hidden;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
-.ftq-card.collapsed {
-  min-height: 56px;
+.ftq-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .ftq-card.expanded {
-  padding: 1.5rem;
+  border-color: var(--color-primary-soft);
 }
 
+/* ───── Card Header (Always Visible) ───── */
 .ftq-card-header {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
   padding: 1rem 1.5rem;
   background: transparent;
   border: none;
@@ -274,8 +277,9 @@
   font-family: inherit;
   font-size: inherit;
   text-align: left;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
   color: var(--color-text);
+  outline: none;
 }
 
 .ftq-card-header:hover {
@@ -285,12 +289,19 @@
 .ftq-card-question-preview {
   flex: 1;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: opacity 0.2s;
+  min-width: 0;
+}
+
+.ftq-card.expanded .ftq-card-question-preview {
+  display: none;
+  opacity: 0;
 }
 
 .ftq-card-question-preview p {
@@ -301,18 +312,42 @@
 .expand-icon {
   flex-shrink: 0;
   color: var(--color-muted);
-  transition: transform 0.2s;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
 }
 
-.ftq-card-header:hover .expand-icon {
+.expand-icon.rotated {
+  transform: rotate(180deg);
+  color: var(--color-primary);
+}
+
+.ftq-card-header:hover .expand-icon:not(.rotated) {
   transform: translateY(2px);
   color: var(--color-primary);
 }
 
-.ftq-card-expanded {
+/* ───── Slide-down Card Body Wrapper (CSS Grid Animation) ───── */
+.ftq-card-body-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ftq-card.expanded .ftq-card-body-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.ftq-card-body-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding: 0 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  transition: padding-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ftq-card.expanded .ftq-card-body-inner {
+  padding-bottom: 1.5rem;
 }
 
 .ftq-exam-main-question {
@@ -324,13 +359,15 @@
 .ftq-exam-question-line {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 1.5rem;
+  justify-content: space-between;
 }
 
 .ftq-exam-text {
   flex: 1;
   color: var(--color-text);
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 500;
   line-height: 1.7;
 }
 
@@ -340,8 +377,8 @@
 
 .collapse-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -365,19 +402,20 @@
   align-items: flex-start;
 }
 
+/* ───── Textarea (Premium Focus & Shadows) ───── */
 .ftq-user-input {
   min-height: 80px;
   flex: 1;
   resize: vertical;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm, 8px);
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   background: var(--color-surface-alt);
   color: var(--color-text);
   font-family: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.95rem;
   line-height: 1.5;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   outline: none;
 }
 
@@ -387,6 +425,7 @@
   background: var(--color-surface);
 }
 
+/* ───── Actions ───── */
 .ftq-action-buttons {
   display: flex;
   gap: 0.5rem;
@@ -422,55 +461,59 @@
 }
 
 .ftq-success-btn.selected {
-  background: #10b981;
-  border-color: #10b981;
+  background: hsl(142, 76%, 45%);
+  border-color: hsl(142, 76%, 45%);
   color: #fff;
 }
 
 .ftq-fail-btn.selected {
-  background: #ef4444;
-  border-color: #ef4444;
+  background: hsl(346, 84%, 61%);
+  border-color: hsl(346, 84%, 61%);
   color: #fff;
 }
 
 .ftq-icon-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+/* ───── Answer Box ───── */
 .ftq-exam-answer-box {
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
   background: var(--color-surface-alt);
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
-  font-size: 0.9375rem;
+  font-size: 0.95rem;
   line-height: 1.7;
 }
 
 .ftq-exam-answer-box span {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
-  margin-right: 0.25rem;
+  margin-right: 0.5rem;
+  display: inline-block;
+  margin-bottom: 0.25rem;
 }
 
 .ftq-exam-answer-box div {
   margin-top: 0.25rem;
 }
 
+/* ───── Subquestions (Unified Side-Labeling) ───── */
 .ftq-exam-part {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   border-top: 1px dashed var(--color-border);
-  padding-top: 1.25rem;
+  padding-top: 1.5rem;
   position: relative;
 }
 
 .ftq-exam-part-label {
   position: absolute;
-  left: -2.25rem;
-  top: 1.25rem;
+  left: -2.5rem;
+  top: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -487,10 +530,37 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 1rem;
   font-size: 0.8rem;
-  color: var(--color-muted);
-  margin-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+.ftq-metadata span {
+  font-weight: 600;
+}
+
+.ftq-metadata .difficulty {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.ftq-metadata .success {
+  color: hsl(142, 76%, 36%);
+}
+
+.ftq-metadata .fail {
+  color: hsl(346, 84%, 50%);
+}
+
+.theme-dark .ftq-metadata .success {
+  color: hsl(142, 70%, 75%);
+}
+
+.theme-dark .ftq-metadata .fail {
+  color: hsl(346, 84%, 80%);
 }
 
 /* ───── Responsive ───── */
@@ -521,7 +591,15 @@
   }
 
   .ftq-card.expanded {
-    padding: 1.25rem;
+    padding: 0;
+  }
+
+  .ftq-card-body-inner {
+    padding: 0 1.25rem;
+  }
+
+  .ftq-card.expanded .ftq-card-body-inner {
+    padding-bottom: 1.25rem;
   }
 
   .ftq-exam-part-label {

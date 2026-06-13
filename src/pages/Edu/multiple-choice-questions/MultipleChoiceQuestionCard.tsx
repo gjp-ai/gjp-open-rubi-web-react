@@ -99,42 +99,31 @@ export const MultipleChoiceQuestionCard = ({
   )
 
   return (
-    <div className={`mcq-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      {/* Collapsed view - just the question (1 line) */}
-      {!isExpanded && (
-        <button
-          className="mcq-card-header"
-          onClick={handleCardClick}
-          type="button"
-          aria-label={t('vocabulary.view_details')}
-        >
+    <div
+      className={`mcq-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+      onClick={handleCardClick}
+    >
+      {/* Card Header (clickable to expand/collapse) */}
+      <button
+        className="mcq-card-header"
+        onClick={toggleExpanded}
+        type="button"
+        aria-expanded={isExpanded}
+        aria-label={t('vocabulary.view_details')}
+      >
+        <div className="mcq-card-question-preview-container">
           <div className="mcq-card-question-preview">{htmlToText(question.question).slice(0, 150)}</div>
-          <svg className="expand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 9l-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      )}
+          <div className="mcq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
+        </div>
+        <svg className={`expand-icon ${isExpanded ? 'rotated' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9l-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
 
-      {/* Expanded view - full question and options */}
-      {isExpanded && (
-        <div className="mcq-card-expanded">
-          {/* Question header with collapse button */}
-          <div className="mcq-card-header-expanded">
-            <div>
-              <QuestionImages questionId={question.id} referenceKey="multipleChoiceQuestionId" lang={lang} />
-              <div className="mcq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
-            </div>
-            <button
-              className="collapse-btn"
-              onClick={toggleExpanded}
-              type="button"
-              aria-label={t('vocabulary.hide')}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 15l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          </div>
+      {/* Slide-down Card Body wrapper */}
+      <div className="mcq-card-body-wrapper">
+        <div className="mcq-card-body-inner">
+          <QuestionImages questionId={question.id} referenceKey="multipleChoiceQuestionId" lang={lang} />
 
           {/* Options */}
           <div className="mcq-options">
@@ -163,7 +152,7 @@ export const MultipleChoiceQuestionCard = ({
 
           {/* Answer Feedback */}
           {isCorrect && (
-            <div className="mcq-feedback correct">
+            <div className="mcq-feedback correct animate-fade-in">
               <span className="feedback-icon">✓</span>
               <span className="feedback-text">{t('edu.correct')}</span>
             </div>
@@ -171,7 +160,7 @@ export const MultipleChoiceQuestionCard = ({
 
           {/* Explanation */}
           {isCorrect && question.explanation && (
-            <div className="mcq-explanation">
+            <div className="mcq-explanation animate-fade-in">
               <h4>{t('edu.explanation')}</h4>
               <div className="explanation-content" dangerouslySetInnerHTML={renderHtml(question.explanation)} />
             </div>
@@ -199,7 +188,9 @@ export const MultipleChoiceQuestionCard = ({
             )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
+
+export default MultipleChoiceQuestionCard

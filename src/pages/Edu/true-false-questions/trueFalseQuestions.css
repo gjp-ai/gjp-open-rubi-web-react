@@ -251,22 +251,25 @@
   width: 100%;
   overflow: hidden;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
-.tfq-card.collapsed {
-  min-height: 56px;
+.tfq-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .tfq-card.expanded {
-  padding: 1.5rem;
+  border-color: var(--color-primary-soft);
 }
 
+/* ───── Card Header (Always Visible) ───── */
 .tfq-card-header {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
   padding: 1rem 1.5rem;
   background: transparent;
   border: none;
@@ -274,8 +277,9 @@
   font-family: inherit;
   font-size: inherit;
   text-align: left;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
   color: var(--color-text);
+  outline: none;
 }
 
 .tfq-card-header:hover {
@@ -285,12 +289,19 @@
 .tfq-card-question-preview {
   flex: 1;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: opacity 0.2s;
+  min-width: 0;
+}
+
+.tfq-card.expanded .tfq-card-question-preview {
+  display: none;
+  opacity: 0;
 }
 
 .tfq-card-question-preview p {
@@ -301,31 +312,55 @@
 .expand-icon {
   flex-shrink: 0;
   color: var(--color-muted);
-  transition: transform 0.2s;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
 }
 
-.tfq-card-header:hover .expand-icon {
+.expand-icon.rotated {
+  transform: rotate(180deg);
+  color: var(--color-primary);
+}
+
+.tfq-card-header:hover .expand-icon:not(.rotated) {
   transform: translateY(2px);
   color: var(--color-primary);
 }
 
-.tfq-card-expanded {
+/* ───── Slide-down Card Body Wrapper (CSS Grid Animation) ───── */
+.tfq-card-body-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tfq-card.expanded .tfq-card-body-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.tfq-card-body-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding: 0 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  transition: padding-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tfq-card.expanded .tfq-card-body-inner {
+  padding-bottom: 1.5rem;
 }
 
 .tfq-card-header-expanded {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .tfq-card-question-full {
   flex: 1;
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 1.05rem;
+  font-weight: 500;
   color: var(--color-text);
   line-height: 1.7;
 }
@@ -336,8 +371,8 @@
 
 .collapse-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -355,6 +390,7 @@
   background: var(--color-primary-soft);
 }
 
+/* ───── True/False Interaction Buttons ───── */
 .tfq-answer-buttons {
   display: flex;
   gap: 1rem;
@@ -362,57 +398,102 @@
 
 .tfq-btn {
   flex: 1;
-  min-height: 44px;
+  min-height: 48px;
   border-radius: var(--radius-md, 12px);
   border: 2px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
   font-family: inherit;
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tfq-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.tfq-btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .tfq-btn-true:hover {
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.05);
-  color: #10b981;
+  border-color: hsl(142, 76%, 45%);
+  background: hsl(142, 70%, 97%);
+  color: hsl(142, 76%, 28%);
 }
 
 .tfq-btn-false:hover {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
-  color: #ef4444;
+  border-color: hsl(346, 84%, 61%);
+  background: hsl(346, 84%, 98%);
+  color: hsl(346, 84%, 40%);
+}
+
+.theme-dark .tfq-btn-true:hover {
+  border-color: hsl(142, 70%, 45%);
+  background: hsla(142, 70%, 45%, 0.15);
+  color: hsl(142, 70%, 80%);
+}
+
+.theme-dark .tfq-btn-false:hover {
+  border-color: hsl(346, 84%, 61%);
+  background: hsla(346, 84%, 61%, 0.15);
+  color: hsl(346, 84%, 85%);
+}
+
+/* ───── Result Section & Feedbacks ───── */
+.tfq-result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .tfq-result {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
   font-weight: 600;
-  margin-top: 0.75rem;
+  font-size: 0.9375rem;
   align-self: flex-start;
+  border: 1px solid transparent;
 }
 
 .tfq-result.correct {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  background: hsl(142, 70%, 95%);
+  color: hsl(142, 76%, 24%);
+  border-color: hsl(142, 76%, 45%);
 }
 
 .tfq-result.incorrect {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: hsl(346, 84%, 96%);
+  color: hsl(346, 84%, 35%);
+  border-color: hsl(346, 84%, 61%);
+}
+
+.theme-dark .tfq-result.correct {
+  background: hsla(142, 70%, 45%, 0.1);
+  color: hsl(142, 70%, 80%);
+  border-color: hsl(142, 70%, 45%);
+}
+
+.theme-dark .tfq-result.incorrect {
+  background: hsla(346, 84%, 61%, 0.1);
+  color: hsl(346, 84%, 85%);
+  border-color: hsl(346, 84%, 61%);
 }
 
 .tfq-explanation {
-  margin-top: 0.75rem;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
   background: var(--color-surface-alt);
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   font-size: 0.9375rem;
@@ -420,24 +501,26 @@
 }
 
 .tfq-reset-btn {
-  padding: 0.5rem 1rem;
-  margin-top: 0.75rem;
+  padding: 0.55rem 1.25rem;
+  margin-top: 0.5rem;
   align-self: flex-start;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm, 8px);
+  border-radius: 8px;
   background: var(--color-surface-alt);
   color: var(--color-text);
   font-family: inherit;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   outline: none;
+  font-size: 0.9rem;
 }
 
 .tfq-reset-btn:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 .tfq-metadata {
@@ -445,7 +528,8 @@
   justify-content: flex-end;
   color: var(--color-muted);
   font-size: 0.8rem;
-  margin-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
 }
 
 /* ───── Responsive ───── */
@@ -476,6 +560,14 @@
   }
 
   .tfq-card.expanded {
-    padding: 1.25rem;
+    padding: 0;
+  }
+
+  .tfq-card-body-inner {
+    padding: 0 1.25rem;
+  }
+
+  .tfq-card.expanded .tfq-card-body-inner {
+    padding-bottom: 1.25rem;
   }
 }

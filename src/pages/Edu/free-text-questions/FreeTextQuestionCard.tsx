@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
@@ -21,23 +21,71 @@ export const FreeTextQuestionCard = ({ question, isExpandedView, lang }: { quest
     setMainAnswer('')
   }
 
+  const handleCardClick = useCallback(() => {
+    if (!isExpanded) {
+      setIsExpanded(true)
+    }
+  }, [isExpanded])
+
+  const toggleExpanded = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setIsExpanded(!isExpanded)
+      if (isExpanded) {
+        reset()
+      }
+    },
+    [isExpanded]
+  )
+
   return (
-    <div className={`ftq-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      {!isExpanded ? (
-        <button type="button" className="ftq-card-header" onClick={() => setIsExpanded(true)}>
-          <div className="ftq-card-question-preview">{htmlToText(question.question || question.description || '').slice(0, 180)}</div>
-          <span className="expand-icon">⌄</span>
-        </button>
-      ) : (
-        <div className="ftq-card-expanded">
+    <div
+      className={`ftq-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+      onClick={handleCardClick}
+    >
+      {/* Card Header (clickable when collapsed or expanded) */}
+      <button
+        className="ftq-card-header"
+        onClick={toggleExpanded}
+        type="button"
+        aria-expanded={isExpanded}
+        aria-label={t('vocabulary.view_details')}
+      >
+        <div className="ftq-card-question-preview">
+          {htmlToText(question.question || question.description || '').slice(0, 180)}
+        </div>
+        <svg className={`expand-icon ${isExpanded ? 'rotated' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9l-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {/* Slide-down Card Body wrapper */}
+      <div className="ftq-card-body-wrapper">
+        <div className="ftq-card-body-inner">
           <QuestionImages questionId={question.id} referenceKey="freeTextQuestionId" lang={lang} />
+
           <div className="ftq-exam-main-question">
             <div className="ftq-exam-question-line">
-              <button type="button" className="collapse-btn" onClick={() => { setIsExpanded(false); reset() }} aria-label={t('vocabulary.hide')}>⌃</button>
               <div className="ftq-exam-text" dangerouslySetInnerHTML={renderHtml(question.question || question.description)} />
+              <button
+                type="button"
+                className="collapse-btn"
+                onClick={toggleExpanded}
+                aria-label={t('vocabulary.hide')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 15l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
             </div>
             <div className="ftq-exam-interaction-row">
-              <textarea className="ftq-user-input" placeholder={t('vocabulary.your_answer')} value={mainAnswer} onChange={(event) => setMainAnswer(event.target.value)} />
+              <textarea
+                className="ftq-user-input"
+                placeholder={t('vocabulary.your_answer')}
+                value={mainAnswer}
+                onChange={(event) => setMainAnswer(event.target.value)}
+                onClick={(e) => e.stopPropagation()}
+              />
               <AnswerActions
                 shown={Boolean(visible.main)}
                 status={feedback.main ?? 'none'}
@@ -48,16 +96,21 @@ export const FreeTextQuestionCard = ({ question, isExpandedView, lang }: { quest
             </div>
             {visible.main && question.answer ? <AnswerBox answer={question.answer} /> : null}
           </div>
+
           {pairs.map((letter) => {
             const q = question[`question${letter}` as keyof EduQuestion] as string | null | undefined
             const a = question[`answer${letter}` as keyof EduQuestion] as string | null | undefined
             if (!q && !a) return null
             return (
-              <div key={letter} className="ftq-exam-part">
+              <div key={letter} className="ftq-exam-part animate-fade-in">
                 <div className="ftq-exam-part-label">{letter}</div>
                 <div className="ftq-exam-text" dangerouslySetInnerHTML={renderHtml(q)} />
                 <div className="ftq-exam-interaction-row">
-                  <textarea className="ftq-user-input" placeholder={t('vocabulary.your_answer')} />
+                  <textarea
+                    className="ftq-user-input"
+                    placeholder={t('vocabulary.your_answer')}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                   <AnswerActions
                     shown={Boolean(visible[letter])}
                     status={feedback[letter] ?? 'none'}
@@ -70,35 +123,48 @@ export const FreeTextQuestionCard = ({ question, isExpandedView, lang }: { quest
               </div>
             )
           })}
+
           <QuestionMeta question={question} />
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
-const AnswerActions = ({ shown, status, onToggle, onSuccess, onFail }: { shown: boolean; status: 'none' | 'success' | 'fail'; onToggle: () => void; onSuccess: () => void; onFail: () => void }) => (
-  <div className="ftq-action-buttons">
-    <button type="button" className={`ftq-icon-btn ${shown ? 'active' : ''}`} onClick={onToggle}>{shown ? '◐' : '◉'}</button>
-    {shown ? (
-      <>
-        <button type="button" className={`ftq-icon-btn ftq-success-btn ${status === 'success' ? 'selected' : ''}`} onClick={onSuccess} disabled={status !== 'none'}>✓</button>
-        <button type="button" className={`ftq-icon-btn ftq-fail-btn ${status === 'fail' ? 'selected' : ''}`} onClick={onFail} disabled={status !== 'none'}>×</button>
-      </>
-    ) : null}
-  </div>
-)
+const AnswerActions = ({ shown, status, onToggle, onSuccess, onFail }: { shown: boolean; status: 'none' | 'success' | 'fail'; onToggle: () => void; onSuccess: () => void; onFail: () => void }) => {
+  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation()
+    action()
+  }
+  return (
+    <div className="ftq-action-buttons">
+      <button type="button" className={`ftq-icon-btn ${shown ? 'active' : ''}`} onClick={(e) => handleActionClick(e, onToggle)}>{shown ? '◐' : '◉'}</button>
+      {shown ? (
+        <>
+          <button type="button" className={`ftq-icon-btn ftq-success-btn ${status === 'success' ? 'selected' : ''}`} onClick={(e) => handleActionClick(e, onSuccess)} disabled={status !== 'none'}>✓</button>
+          <button type="button" className={`ftq-icon-btn ftq-fail-btn ${status === 'fail' ? 'selected' : ''}`} onClick={(e) => handleActionClick(e, onFail)} disabled={status !== 'none'}>×</button>
+        </>
+      ) : null}
+    </div>
+  )
+}
 
 const AnswerBox = ({ answer }: { answer: string }) => {
   const t = useT()
-  return <div className="ftq-exam-answer-box"><span>{t('edu.answer')}:</span><div dangerouslySetInnerHTML={renderHtml(answer)} /></div>
+  return (
+    <div className="ftq-exam-answer-box animate-fade-in">
+      <span>{t('edu.answer')}:</span>
+      <div dangerouslySetInnerHTML={renderHtml(answer)} />
+    </div>
+  )
 }
 
 const QuestionMeta = ({ question }: { question: EduQuestion }) => (
   <div className="ftq-metadata">
-    {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
-    {question.successCount !== null && question.successCount !== undefined ? <span>✓ {question.successCount}</span> : null}
-    {question.failCount !== null && question.failCount !== undefined ? <span>× {question.failCount}</span> : null}
+    {question.difficultyLevel ? <span className="difficulty">{question.difficultyLevel}</span> : null}
+    {question.successCount !== null && question.successCount !== undefined ? <span className="success">✓ {question.successCount}</span> : null}
+    {question.failCount !== null && question.failCount !== undefined ? <span className="fail">× {question.failCount}</span> : null}
   </div>
 )
 
+export default FreeTextQuestionCard

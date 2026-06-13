@@ -251,22 +251,25 @@
   width: 100%;
   overflow: hidden;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
-.fbq-card.collapsed {
-  min-height: 56px;
+.fbq-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .fbq-card.expanded {
-  padding: 1.5rem;
+  border-color: var(--color-primary-soft);
 }
 
+/* ───── Card Header (Always Visible) ───── */
 .fbq-card-header {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
   padding: 1rem 1.5rem;
   background: transparent;
   border: none;
@@ -274,8 +277,9 @@
   font-family: inherit;
   font-size: inherit;
   text-align: left;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
   color: var(--color-text);
+  outline: none;
 }
 
 .fbq-card-header:hover {
@@ -285,12 +289,19 @@
 .fbq-card-question-preview {
   flex: 1;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: opacity 0.2s;
+  min-width: 0;
+}
+
+.fbq-card.expanded .fbq-card-question-preview {
+  display: none;
+  opacity: 0;
 }
 
 .fbq-card-question-preview p {
@@ -301,70 +312,118 @@
 .expand-icon {
   flex-shrink: 0;
   color: var(--color-muted);
-  transition: transform 0.2s;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
 }
 
-.fbq-card-header:hover .expand-icon {
+.expand-icon.rotated {
+  transform: rotate(180deg);
+  color: var(--color-primary);
+}
+
+.fbq-card-header:hover .expand-icon:not(.rotated) {
   transform: translateY(2px);
   color: var(--color-primary);
 }
 
-.fbq-card-expanded {
+/* ───── Slide-down Card Body Wrapper (CSS Grid Animation) ───── */
+.fbq-card-body-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fbq-card.expanded .fbq-card-body-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.fbq-card-body-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding: 0 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  transition: padding-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fbq-card.expanded .fbq-card-body-inner {
+  padding-bottom: 1.5rem;
 }
 
 .fbq-card-header-expanded {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .fbq-card-question-interactive {
   line-height: 1.8;
   flex: 1;
   color: var(--color-text);
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 500;
 }
 
 .fbq-card-question-interactive p {
   margin: 0.25rem 0;
 }
 
+/* ───── Inline Inputs (Premium Design) ───── */
 .fbq-inline-input {
-  width: 110px;
-  margin: 0 0.25rem;
+  width: 120px;
+  margin: 0 0.4rem;
   border: 0;
-  border-bottom: 2px solid var(--color-border);
-  background: transparent;
+  border-bottom: 2px solid var(--color-border-strong);
+  background: var(--color-surface-alt);
   color: var(--color-text);
   font-family: inherit;
   font-size: 1rem;
+  font-weight: 600;
   text-align: center;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px 4px 0 0;
+  outline: none;
 }
 
 .fbq-inline-input:focus {
-  outline: none;
   border-bottom-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .fbq-inline-input.correct {
-  border-bottom-color: #10b981;
-  color: #10b981;
+  border-bottom-color: hsl(142, 76%, 45%);
+  background: hsl(142, 70%, 97%);
+  color: hsl(142, 76%, 28%);
 }
 
 .fbq-inline-input.incorrect {
-  border-bottom-color: #ef4444;
-  color: #ef4444;
+  border-bottom-color: hsl(346, 84%, 61%);
+  background: hsl(346, 84%, 98%);
+  color: hsl(346, 84%, 40%);
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
 
+.theme-dark .fbq-inline-input.correct {
+  border-bottom-color: hsl(142, 70%, 45%);
+  background: hsla(142, 70%, 45%, 0.15);
+  color: hsl(142, 70%, 80%);
+}
+
+.theme-dark .fbq-inline-input.incorrect {
+  border-bottom-color: hsl(346, 84%, 61%);
+  background: hsla(346, 84%, 61%, 0.15);
+  color: hsl(346, 84%, 85%);
+}
+
+/* ───── Controls & Buttons ───── */
 .fbq-header-controls {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.5rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .fbq-check-btn,
@@ -376,39 +435,42 @@
   color: var(--color-text);
   cursor: pointer;
   font-family: inherit;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s;
   outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fbq-check-btn {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 32px;
+  height: 32px;
   font-size: 1.1rem;
-  padding: 0;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-soft);
 }
 
-.fbq-check-btn:hover {
+.fbq-check-btn:hover:not(:disabled) {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
+  transform: scale(1.05);
 }
 
 .fbq-check-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  background: var(--color-surface-alt);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
 }
 
 .collapse-btn {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+  width: 32px;
+  height: 32px;
+  color: var(--color-muted);
 }
 
 .collapse-btn:hover {
@@ -417,59 +479,88 @@
 }
 
 .fbq-reset-btn {
-  padding: 0.5rem 1rem;
-  margin-top: 0.75rem;
+  padding: 0.55rem 1.25rem;
+  margin-top: 0.5rem;
   align-self: flex-start;
-  border-radius: var(--radius-sm, 8px);
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
 
 .fbq-reset-btn:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ───── Result Section & Feedbacks ───── */
+.fbq-result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .fbq-result {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
   font-weight: 600;
-  margin-top: 0.75rem;
+  font-size: 0.9375rem;
   align-self: flex-start;
+  border: 1px solid transparent;
 }
 
 .fbq-result.correct {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  background: hsl(142, 70%, 95%);
+  color: hsl(142, 76%, 24%);
+  border-color: hsl(142, 76%, 45%);
 }
 
 .fbq-result.incorrect {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: hsl(346, 84%, 96%);
+  color: hsl(346, 84%, 35%);
+  border-color: hsl(346, 84%, 61%);
+}
+
+.theme-dark .fbq-result.correct {
+  background: hsla(142, 70%, 45%, 0.1);
+  color: hsl(142, 70%, 80%);
+  border-color: hsl(142, 70%, 45%);
+}
+
+.theme-dark .fbq-result.incorrect {
+  background: hsla(346, 84%, 61%, 0.1);
+  color: hsl(346, 84%, 85%);
+  border-color: hsl(346, 84%, 61%);
 }
 
 .fbq-answer {
-  margin-top: 0.75rem;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
   background: var(--color-surface-alt);
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--color-border);
 }
 
 .fbq-answer h4 {
   margin: 0 0 0.5rem 0;
-  font-size: 0.9375rem;
+  font-size: 0.95rem;
   color: var(--color-text);
+  font-weight: 700;
+}
+
+.fbq-answer div {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
   font-weight: 600;
+  margin: 0.25rem 0;
 }
 
 .fbq-explanation {
-  margin-top: 0.75rem;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
   background: var(--color-surface-alt);
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   font-size: 0.9375rem;
@@ -481,7 +572,8 @@
   justify-content: flex-end;
   color: var(--color-muted);
   font-size: 0.8rem;
-  margin-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
 }
 
 /* ───── Responsive ───── */
@@ -512,6 +604,14 @@
   }
 
   .fbq-card.expanded {
-    padding: 1.25rem;
+    padding: 0;
+  }
+
+  .fbq-card-body-inner {
+    padding: 0 1.25rem;
+  }
+
+  .fbq-card.expanded .fbq-card-body-inner {
+    padding-bottom: 1.25rem;
   }
 }
