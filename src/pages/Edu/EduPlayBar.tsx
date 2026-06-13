@@ -5,6 +5,10 @@ import './eduPlayBar.css'
 
 export type EduPlayOrder = 'sequence' | 'random'
 export type EduPlayPronunciation = 'us' | 'uk'
+export interface EduPlayField {
+  label: string
+  value?: string | number | null
+}
 
 export const EDU_PLAY_INTERVALS = [2000, 5000, 10000, 15000, 20000, 25000] as const
 
@@ -19,6 +23,7 @@ interface EduPlayBarProps {
   currentSubtitle?: string
   currentDescription?: string
   currentMeta?: string
+  fullScreenFields?: EduPlayField[]
   progress?: number
   onStop: () => void
   onTogglePause: () => void
@@ -39,6 +44,7 @@ export const EduPlayBar = ({
   currentSubtitle,
   currentDescription,
   currentMeta,
+  fullScreenFields = [],
   progress,
   onStop,
   onTogglePause,
@@ -52,6 +58,7 @@ export const EduPlayBar = ({
   const safeTotal = Math.max(total, 0)
   const safeCurrent = safeTotal === 0 ? 0 : Math.min(currentIndex + 1, safeTotal)
   const safeProgress = Math.max(0, Math.min(progress ?? 0, 100))
+  const visibleFullScreenFields = fullScreenFields.filter((field) => field.value !== undefined && field.value !== null && String(field.value).trim() !== '')
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -133,7 +140,18 @@ export const EduPlayBar = ({
             {currentMeta ? <span className="edu-play-fullscreen__meta">{currentMeta}</span> : null}
             <h2>{currentTitle}</h2>
             {currentSubtitle ? <p className="edu-play-fullscreen__subtitle">{currentSubtitle}</p> : null}
-            {currentDescription ? <div className="edu-play-fullscreen__description" dangerouslySetInnerHTML={renderHtml(currentDescription)} /> : null}
+            {visibleFullScreenFields.length > 0 ? (
+              <div className="edu-play-fullscreen__fields">
+                {visibleFullScreenFields.map((field) => (
+                  <section className="edu-play-fullscreen__field" key={field.label}>
+                    <span>{field.label}</span>
+                    <div dangerouslySetInnerHTML={renderHtml(String(field.value ?? ''))} />
+                  </section>
+                ))}
+              </div>
+            ) : currentDescription ? (
+              <div className="edu-play-fullscreen__description" dangerouslySetInnerHTML={renderHtml(currentDescription)} />
+            ) : null}
             {renderProgressControl('edu-play-bar__progress edu-play-fullscreen__progress')}
           </div>
           <div className="edu-play-fullscreen__controls">

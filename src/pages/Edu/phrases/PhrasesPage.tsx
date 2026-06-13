@@ -5,7 +5,7 @@ import { useUIContext } from '../../../shared/contexts/UIContext'
 import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
-import { EduPlayBar, type EduPlayOrder } from '../EduPlayBar'
+import { EduPlayBar, type EduPlayField, type EduPlayOrder } from '../EduPlayBar'
 import { getEduLearningItems, type EduLearningKind } from '../eduApi'
 import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { readEduPlaySettings, saveEduPlaySettings } from '../playSettings'
@@ -30,6 +30,15 @@ const matches = (item: EduLearningItem, query: string) => {
 }
 
 const getAudioUrl = (item: EduLearningItem) => item.phoneticUsAudioUrl || item.phoneticAudioUrl || item.phoneticUkAudioUrl
+
+const formatPhonetics = (item?: EduLearningItem) => {
+  if (!item) return ''
+  const values = [
+    item.phoneticUs ? `US /${htmlToText(item.phoneticUs)}/` : '',
+    item.phoneticUk ? `UK /${htmlToText(item.phoneticUk)}/` : '',
+  ].filter(Boolean)
+  return values.length > 0 ? values.join(' · ') : item.phonetic ? `/${htmlToText(item.phonetic)}/` : ''
+}
 
 const shuffleArray = (array: number[]) => {
   const shuffled = [...array]
@@ -243,9 +252,24 @@ export const EduPhrasesPage = () => {
 
   const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL', 'Phrase', 'Idiom']
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
-  const currentPlaySubtitle = currentPlayItem ? htmlToText(currentPlayItem.translation || currentPlayItem.easyMeaning || currentPlayItem.meaning) : ''
+  const currentPlaySubtitle = formatPhonetics(currentPlayItem)
   const currentPlayDescription = currentPlayItem ? currentPlayItem.sentenceOne || currentPlayItem.sentenceTwo || currentPlayItem.explanation || '' : ''
   const currentPlayMeta = currentPlayItem ? [currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
+  const currentPlayFields: EduPlayField[] = currentPlayItem ? [
+    { label: 'Phonetic', value: currentPlaySubtitle },
+    { label: t('vocabulary.translation'), value: currentPlayItem.translation },
+    { label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
+    { label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
+    { label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
+    { label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
+    { label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
+    { label: t('edu.explanation'), value: currentPlayItem.explanation },
+    { label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
+    { label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
+    { label: t('vocabulary.term'), value: currentPlayItem.term },
+    { label: t('vocabulary.week'), value: currentPlayItem.week },
+    { label: 'Tags', value: currentPlayItem.tags },
+  ] : []
 
   return (
     <div className="page-container edu-page phrases-page">
@@ -387,6 +411,7 @@ export const EduPhrasesPage = () => {
           currentSubtitle={currentPlaySubtitle}
           currentDescription={currentPlayDescription}
           currentMeta={currentPlayMeta}
+          fullScreenFields={currentPlayFields}
           onStop={stopAutoPlay}
           onTogglePause={handleTogglePlayPause}
           onIntervalChange={handlePlayIntervalChange}

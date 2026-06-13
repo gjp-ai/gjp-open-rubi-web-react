@@ -2,9 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
-import { QuestionImages } from './QuestionImages'
 
-export const TrueFalseQuestionCard = ({ question, isExpandedView, lang }: { question: EduQuestion; isExpandedView: boolean; lang: string }) => {
+export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [isAnswered, setIsAnswered] = useState(false)
@@ -62,8 +61,6 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView, lang }: { ques
       {/* Slide-down Card Body wrapper */}
       <div className="tfq-card-body-wrapper">
         <div className="tfq-card-body-inner">
-          <QuestionImages questionId={question.id} referenceKey="trueFalseQuestionId" lang={lang} />
-
           <div className="tfq-card-header-expanded">
             <div className="tfq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
             <button

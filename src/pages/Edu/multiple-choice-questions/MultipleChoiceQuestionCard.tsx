@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
-import { QuestionImages } from './QuestionImages'
 import './MultipleChoiceQuestionCard.css'
 
 const options = ['A', 'B', 'C', 'D'] as const
@@ -10,11 +9,9 @@ const options = ['A', 'B', 'C', 'D'] as const
 export const MultipleChoiceQuestionCard = ({
   question,
   isExpandedView,
-  lang,
 }: {
   question: EduQuestion
   isExpandedView: boolean
-  lang: string
 }) => {
   const t = useT()
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
@@ -123,8 +120,6 @@ export const MultipleChoiceQuestionCard = ({
       {/* Slide-down Card Body wrapper */}
       <div className="mcq-card-body-wrapper">
         <div className="mcq-card-body-inner">
-          <QuestionImages questionId={question.id} referenceKey="multipleChoiceQuestionId" lang={lang} />
-
           {/* Options */}
           <div className="mcq-options">
             {options.map((letter) => {

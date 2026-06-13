@@ -2,9 +2,8 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
-import { QuestionImages } from './QuestionImages'
 
-export const FillBlankQuestionCard = ({ question, isExpandedView, lang }: { question: EduQuestion; isExpandedView: boolean; lang: string }) => {
+export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
@@ -102,8 +101,6 @@ export const FillBlankQuestionCard = ({ question, isExpandedView, lang }: { ques
       {/* Slide-down Card Body wrapper */}
       <div className="fbq-card-body-wrapper">
         <div className="fbq-card-body-inner">
-          <QuestionImages questionId={question.id} referenceKey="fillBlankQuestionId" lang={lang} />
-
           <div className="fbq-card-header-expanded">
             {renderQuestionWithInputs()}
             <div className="fbq-header-controls">

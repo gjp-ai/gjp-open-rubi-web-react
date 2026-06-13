@@ -2,11 +2,10 @@ import { useEffect, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { htmlToText, renderHtml } from '../eduUtils'
-import { QuestionImages } from './QuestionImages'
 
 const pairs = ['A', 'B', 'C', 'D', 'E', 'F'] as const
 
-export const FreeTextQuestionCard = ({ question, isExpandedView, lang }: { question: EduQuestion; isExpandedView: boolean; lang: string }) => {
+export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [mainAnswer, setMainAnswer] = useState('')
@@ -62,8 +61,6 @@ export const FreeTextQuestionCard = ({ question, isExpandedView, lang }: { quest
       {/* Slide-down Card Body wrapper */}
       <div className="ftq-card-body-wrapper">
         <div className="ftq-card-body-inner">
-          <QuestionImages questionId={question.id} referenceKey="freeTextQuestionId" lang={lang} />
-
           <div className="ftq-exam-main-question">
             <div className="ftq-exam-question-line">
               <div className="ftq-exam-text" dangerouslySetInnerHTML={renderHtml(question.question || question.description)} />

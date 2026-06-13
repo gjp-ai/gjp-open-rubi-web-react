@@ -4,7 +4,7 @@ import { useUIContext } from '../../../shared/contexts/UIContext'
 import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
-import { EduPlayBar, type EduPlayOrder, type EduPlayPronunciation } from '../EduPlayBar'
+import { EduPlayBar, type EduPlayField, type EduPlayOrder, type EduPlayPronunciation } from '../EduPlayBar'
 import { getEduLearningItems } from '../eduApi'
 import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { readEduPlaySettings, saveEduPlaySettings } from '../playSettings'
@@ -21,6 +21,15 @@ const getAudioUrl = (vocabulary: VocabularyItem, variant: PronunciationVariant) 
   variant === 'uk'
     ? vocabulary.phoneticUkAudioUrl || vocabulary.phoneticAudioUrl || vocabulary.phoneticUsAudioUrl
     : vocabulary.phoneticUsAudioUrl || vocabulary.phoneticAudioUrl || vocabulary.phoneticUkAudioUrl
+
+const formatPhonetics = (item?: VocabularyItem) => {
+  if (!item) return ''
+  const values = [
+    item.phoneticUs ? `US /${htmlToText(item.phoneticUs)}/` : '',
+    item.phoneticUk ? `UK /${htmlToText(item.phoneticUk)}/` : '',
+  ].filter(Boolean)
+  return values.length > 0 ? values.join(' · ') : item.phonetic ? `/${htmlToText(item.phonetic)}/` : ''
+}
 
 const matches = (item: VocabularyItem, query: string) => {
   if (!query) return true
@@ -268,9 +277,47 @@ export const EduVocabulariesPage = () => {
 
   const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL']
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
-  const currentPlaySubtitle = currentPlayItem ? htmlToText(currentPlayItem.translation || currentPlayItem.easyMeaning || currentPlayItem.meaning) : ''
+  const currentPlaySubtitle = formatPhonetics(currentPlayItem)
   const currentPlayDescription = currentPlayItem ? currentPlayItem.definition || currentPlayItem.example || currentPlayItem.synonyms || '' : ''
   const currentPlayMeta = currentPlayItem ? [currentPlayItem.partOfSpeech, currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
+  const currentPlayFields: EduPlayField[] = currentPlayItem ? [
+    { label: 'Phonetic', value: currentPlaySubtitle },
+    { label: t('vocabulary.part_of_speech'), value: currentPlayItem.partOfSpeech },
+    { label: t('vocabulary.translation'), value: currentPlayItem.translation },
+    { label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
+    { label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
+    { label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
+    { label: t('vocabulary.definition'), value: currentPlayItem.definition },
+    { label: t('vocabulary.synonyms'), value: currentPlayItem.synonyms },
+    { label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
+    { label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
+    { label: t('vocabulary.example'), value: currentPlayItem.example },
+    { label: t('edu.explanation'), value: currentPlayItem.explanation },
+    { label: t('vocabulary.plural'), value: currentPlayItem.nounPluralForm },
+    { label: t('vocabulary.simple_past'), value: currentPlayItem.verbSimplePastTense },
+    { label: t('vocabulary.past_perfect'), value: currentPlayItem.verbPastPerfectTense },
+    { label: t('vocabulary.present_participle'), value: currentPlayItem.verbPresentParticiple },
+    { label: t('vocabulary.comparative'), value: currentPlayItem.adjectiveComparativeForm },
+    { label: t('vocabulary.superlative'), value: currentPlayItem.adjectiveSuperlativeForm },
+    { label: 'Noun form', value: currentPlayItem.nounForm },
+    { label: 'Noun meaning', value: currentPlayItem.nounMeaning },
+    { label: 'Noun example', value: currentPlayItem.nounExample },
+    { label: 'Verb form', value: currentPlayItem.verbForm },
+    { label: 'Verb meaning', value: currentPlayItem.verbMeaning },
+    { label: 'Verb example', value: currentPlayItem.verbExample },
+    { label: 'Adjective form', value: currentPlayItem.adjectiveForm },
+    { label: 'Adjective meaning', value: currentPlayItem.adjectiveMeaning },
+    { label: 'Adjective example', value: currentPlayItem.adjectiveExample },
+    { label: 'Adverb form', value: currentPlayItem.adverbForm },
+    { label: 'Adverb meaning', value: currentPlayItem.adverbMeaning },
+    { label: 'Adverb example', value: currentPlayItem.adverbExample },
+    { label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
+    { label: t('vocabulary.term'), value: currentPlayItem.term },
+    { label: t('vocabulary.week'), value: currentPlayItem.week },
+    { label: 'Tags', value: currentPlayItem.tags },
+    { label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
+    { label: t('vocabulary.view_dictionary'), value: currentPlayItem.dictionaryUrl },
+  ] : []
 
   return (
     <div className="page-container edu-page vocabularies-page">
@@ -456,6 +503,7 @@ export const EduVocabulariesPage = () => {
           currentSubtitle={currentPlaySubtitle}
           currentDescription={currentPlayDescription}
           currentMeta={currentPlayMeta}
+          fullScreenFields={currentPlayFields}
           onStop={stopAutoPlay}
           onTogglePause={handleTogglePlayPause}
           onIntervalChange={handlePlayIntervalChange}

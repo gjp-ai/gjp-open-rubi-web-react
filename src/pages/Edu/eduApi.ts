@@ -11,6 +11,15 @@ export interface EduLearningFilters {
   difficultyLevel?: string
 }
 
+export interface EduQuestionFilters {
+  difficultyLevel?: string
+  gradeLevel?: string
+  subject?: string
+  topic?: string
+  term?: string
+  week?: string
+}
+
 const learningPaths: Record<EduLearningKind, string> = {
   vocabularies: 'edu-vocabularies',
   phrases: 'edu-phrases',
@@ -47,9 +56,10 @@ export const getEduQuestions = (
   tag?: string,
   lang?: string,
   signal?: AbortSignal,
+  filters?: EduQuestionFilters,
 ) =>
   fetchOpenApiJson<ApiPagedResponse<EduQuestion>>(
-    createOpenApiUrl(questionPaths[kind], { page, size, question: search, tags: tag, lang }),
+    createOpenApiUrl(questionPaths[kind], { page, size, question: search, tags: tag, lang, ...filters }),
     { signal },
   )
 

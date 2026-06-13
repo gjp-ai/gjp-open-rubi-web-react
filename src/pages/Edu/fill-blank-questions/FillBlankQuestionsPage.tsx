@@ -7,6 +7,7 @@ import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
 import { getEduQuestions, type EduQuestionKind } from '../eduApi'
 import { hasSelectedTags, htmlToText } from '../eduUtils'
+import { getSubjectOptions, getTopicOptions, gradeOptions } from '../question-common/curriculumOptions'
 import { FillBlankQuestionCard } from './FillBlankQuestionCard'
 import { generatePrintExamSheet, openPrintWindow } from './printExamSheet'
 import './fillBlankQuestions.css'
@@ -23,12 +24,24 @@ const matches = (question: EduQuestion, query: string) => {
 export const EduFillBlankQuestionsPage = () => {
   const kind = 'fill-blank-questions' as EduQuestionKind
   const { language } = useUIContext()
-  const { getTags } = useAppSettings()
+  const { getTags, getValue } = useAppSettings()
   const t = useT()
   const [searchQuery, setSearchQuery] = useState('')
   const [draftSearchQuery, setDraftSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<SortOrder>('displayOrder')
+  const [difficultyLevel, setDifficultyLevel] = useState('')
+  const [draftDifficultyLevel, setDraftDifficultyLevel] = useState('')
+  const [gradeLevel, setGradeLevel] = useState('')
+  const [draftGradeLevel, setDraftGradeLevel] = useState('')
+  const [subject, setSubject] = useState('')
+  const [draftSubject, setDraftSubject] = useState('')
+  const [topic, setTopic] = useState('')
+  const [draftTopic, setDraftTopic] = useState('')
+  const [term, setTerm] = useState('')
+  const [draftTerm, setDraftTerm] = useState('')
+  const [week, setWeek] = useState('')
+  const [draftWeek, setDraftWeek] = useState('')
   const [showSortMenu, setShowSortMenu] = useState(false)
   const [isExpandedView, setIsExpandedView] = useState(false)
   const [showPrintDialog, setShowPrintDialog] = useState(false)
@@ -36,12 +49,34 @@ export const EduFillBlankQuestionsPage = () => {
   const [printOptions, setPrintOptions] = useState({ showAnswer: false, showExplanation: false })
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTags[0]
+  const pageLabel = t('nav.edu_fill_blank')
+  const backendFilters = useMemo(
+    () => ({
+      difficultyLevel: difficultyLevel || undefined,
+      gradeLevel: gradeLevel || undefined,
+      subject: subject || undefined,
+      topic: topic || undefined,
+      term: term || undefined,
+      week: week || undefined,
+    }),
+    [difficultyLevel, gradeLevel, subject, term, topic, week],
+  )
   const sectionTags = getTags('edu_question_tags')
+  const difficultyLevels = useMemo(
+    () =>
+      (getValue('difficulty_level') ?? '')
+        .split(',')
+        .map((level) => level.trim())
+        .filter(Boolean),
+    [getValue],
+  )
+  const subjectOptions = useMemo(() => getSubjectOptions(draftGradeLevel), [draftGradeLevel])
+  const topicOptions = useMemo(() => getTopicOptions(draftGradeLevel, draftSubject), [draftGradeLevel, draftSubject])
 
   const fetcher = useCallback(
     (page: number, size: number, lang: string, signal: AbortSignal) =>
-      getEduQuestions(kind, page, size, backendSearchQuery, backendTag, lang, signal),
-    [kind, backendSearchQuery, backendTag],
+      getEduQuestions(kind, page, size, backendSearchQuery, backendTag, lang, signal, backendFilters),
+    [kind, backendSearchQuery, backendTag, backendFilters],
   )
 
   const { items, loading, error, currentPage, setCurrentPage, totalElements, totalPages, pageSize, handlePageSizeChange, skeletonItems } =
@@ -51,6 +86,15 @@ export const EduFillBlankQuestionsPage = () => {
     const query = draftSearchQuery.trim()
     let filtered = items.filter((item) => item.lang === language && matches(item, query))
     filtered = filtered.filter((item) => hasSelectedTags(item.tags, selectedTags))
+    filtered = filtered.filter((item) => {
+      const matchesDifficulty = !draftDifficultyLevel || item.difficultyLevel === draftDifficultyLevel
+      const matchesGrade = !draftGradeLevel || item.gradeLevel === draftGradeLevel
+      const matchesSubject = !draftSubject || item.subject === draftSubject
+      const matchesTopic = !draftTopic || item.topic === draftTopic
+      const matchesTerm = !draftTerm || String(item.term ?? '') === draftTerm
+      const matchesWeek = !draftWeek || String(item.week ?? '') === draftWeek
+      return matchesDifficulty && matchesGrade && matchesSubject && matchesTopic && matchesTerm && matchesWeek
+    })
     switch (sortOrder) {
       case 'alpha':
         filtered = [...filtered].sort((a, b) => htmlToText(a.question).localeCompare(htmlToText(b.question), language === 'ZH' ? 'zh-CN' : 'en'))
@@ -62,11 +106,17 @@ export const EduFillBlankQuestionsPage = () => {
         filtered = [...filtered].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     }
     return filtered
-  }, [draftSearchQuery, items, language, selectedTags, sortOrder])
+  }, [draftDifficultyLevel, draftGradeLevel, draftSearchQuery, draftSubject, draftTerm, draftTopic, draftWeek, items, language, selectedTags, sortOrder])
 
   const applyFilters = (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
     setSearchQuery(draftSearchQuery)
+    setDifficultyLevel(draftDifficultyLevel)
+    setGradeLevel(draftGradeLevel)
+    setSubject(draftSubject)
+    setTopic(draftTopic)
+    setTerm(draftTerm)
+    setWeek(draftWeek)
     setCurrentPage(1)
   }
 
@@ -95,6 +145,18 @@ export const EduFillBlankQuestionsPage = () => {
     setDraftSearchQuery('')
     setSelectedTags([])
     setSortOrder('displayOrder')
+    setDifficultyLevel('')
+    setDraftDifficultyLevel('')
+    setGradeLevel('')
+    setDraftGradeLevel('')
+    setSubject('')
+    setDraftSubject('')
+    setTopic('')
+    setDraftTopic('')
+    setTerm('')
+    setDraftTerm('')
+    setWeek('')
+    setDraftWeek('')
     setShowSortMenu(false)
     setCurrentPage(1)
   }
@@ -106,7 +168,7 @@ export const EduFillBlankQuestionsPage = () => {
         <div className="filters-header">
           <div className="header-left">
             <h2 className="page-title">
-              {t('nav.edu_questions')}
+              {pageLabel}
               <span className="title-count">({displayItems.length})</span>
             </h2>
             {sectionTags.length > 0 && (
@@ -239,8 +301,8 @@ export const EduFillBlankQuestionsPage = () => {
                   <input
                     type="search"
                     value={draftSearchQuery}
-                    placeholder="Question"
-                    aria-label="Question"
+                    placeholder={pageLabel}
+                    aria-label={pageLabel}
                     onChange={(event) => setDraftSearchQuery(event.target.value)}
                   />
                   {draftSearchQuery && (
@@ -249,6 +311,61 @@ export const EduFillBlankQuestionsPage = () => {
                     </button>
                   )}
                 </div>
+                <label className="mcq-filter-field">
+                  <span>{t('vocabulary.difficulty')}</span>
+                  <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
+                    <option value="">{t('edu.filters.all')}</option>
+                    {difficultyLevels.map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="mcq-filter-field">
+                  <span>{t('question.grade')}</span>
+                  <select
+                    value={draftGradeLevel}
+                    onChange={(event) => {
+                      setDraftGradeLevel(event.target.value)
+                      setDraftSubject('')
+                      setDraftTopic('')
+                    }}
+                  >
+                    <option value="">{t('edu.filters.all')}</option>
+                    {gradeOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="mcq-filter-field">
+                  <span>{t('question.subject')}</span>
+                  <select
+                    value={draftSubject}
+                    onChange={(event) => {
+                      setDraftSubject(event.target.value)
+                      setDraftTopic('')
+                    }}
+                  >
+                    <option value="">{t('edu.filters.all')}</option>
+                    {subjectOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="mcq-filter-field">
+                  <span>{t('question.topic')}</span>
+                  <select value={draftTopic} onChange={(event) => setDraftTopic(event.target.value)}>
+                    <option value="">{t('edu.filters.all')}</option>
+                    {topicOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="mcq-filter-field">
+                  <span>{t('vocabulary.term')}</span>
+                  <select value={draftTerm} onChange={(event) => setDraftTerm(event.target.value)}>
+                    <option value="">{t('edu.filters.all')}</option>
+                    {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
+                <label className="mcq-filter-field">
+                  <span>{t('vocabulary.week')}</span>
+                  <select value={draftWeek} onChange={(event) => setDraftWeek(event.target.value)}>
+                    <option value="">{t('edu.filters.all')}</option>
+                    {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
                 <div className="mcq-filter-actions">
                   <button className="mcq-filter-btn mcq-filter-btn--primary" type="submit">
                     Search
@@ -273,7 +390,7 @@ export const EduFillBlankQuestionsPage = () => {
       ) : (
         <div className="fbq-grid">
           {displayItems.map((question) => (
-            <FillBlankQuestionCard key={question.id} question={question} isExpandedView={isExpandedView} lang={language} />
+            <FillBlankQuestionCard key={question.id} question={question} isExpandedView={isExpandedView} />
           ))}
         </div>
       )}
