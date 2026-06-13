@@ -11,6 +11,14 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
   const [mainAnswer, setMainAnswer] = useState('')
   const [visible, setVisible] = useState<Record<string, boolean>>({})
   const [feedback, setFeedback] = useState<Record<string, 'none' | 'success' | 'fail'>>({ main: 'none' })
+  const subquestions = pairs
+    .map((letter) => ({
+      answer: question[`answer${letter}` as keyof EduQuestion] as string | null | undefined,
+      letter,
+      question: question[`question${letter}` as keyof EduQuestion] as string | null | undefined,
+    }))
+    .filter((item) => htmlToText(item.question).length > 0 || htmlToText(item.answer).length > 0)
+  const hasSubquestions = subquestions.some((item) => htmlToText(item.question).length > 0)
 
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
 
@@ -75,51 +83,56 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
                 </svg>
               </button>
             </div>
-            <div className="ftq-exam-interaction-row">
-              <textarea
-                className="ftq-user-input"
-                placeholder={t('vocabulary.your_answer')}
-                value={mainAnswer}
-                onChange={(event) => setMainAnswer(event.target.value)}
-                onClick={(e) => e.stopPropagation()}
-              />
-              <AnswerActions
-                shown={Boolean(visible.main)}
-                status={feedback.main ?? 'none'}
-                onToggle={() => setVisible((current) => ({ ...current, main: !current.main }))}
-                onSuccess={() => setFeedback((current) => ({ ...current, main: 'success' }))}
-                onFail={() => setFeedback((current) => ({ ...current, main: 'fail' }))}
-              />
-            </div>
-            {visible.main && question.answer ? <AnswerBox answer={question.answer} /> : null}
-          </div>
-
-          {pairs.map((letter) => {
-            const q = question[`question${letter}` as keyof EduQuestion] as string | null | undefined
-            const a = question[`answer${letter}` as keyof EduQuestion] as string | null | undefined
-            if (!q && !a) return null
-            return (
-              <div key={letter} className="ftq-exam-part animate-fade-in">
-                <div className="ftq-exam-part-label">{letter}</div>
-                <div className="ftq-exam-text" dangerouslySetInnerHTML={renderHtml(q)} />
+            {!hasSubquestions ? (
+              <>
                 <div className="ftq-exam-interaction-row">
                   <textarea
                     className="ftq-user-input"
                     placeholder={t('vocabulary.your_answer')}
+                    value={mainAnswer}
+                    onChange={(event) => setMainAnswer(event.target.value)}
                     onClick={(e) => e.stopPropagation()}
                   />
                   <AnswerActions
-                    shown={Boolean(visible[letter])}
-                    status={feedback[letter] ?? 'none'}
-                    onToggle={() => setVisible((current) => ({ ...current, [letter]: !current[letter] }))}
-                    onSuccess={() => setFeedback((current) => ({ ...current, [letter]: 'success' }))}
-                    onFail={() => setFeedback((current) => ({ ...current, [letter]: 'fail' }))}
+                    shown={Boolean(visible.main)}
+                    status={feedback.main ?? 'none'}
+                    onToggle={() => setVisible((current) => ({ ...current, main: !current.main }))}
+                    onSuccess={() => setFeedback((current) => ({ ...current, main: 'success' }))}
+                    onFail={() => setFeedback((current) => ({ ...current, main: 'fail' }))}
                   />
                 </div>
-                {visible[letter] && a ? <AnswerBox answer={a} /> : null}
-              </div>
-            )
-          })}
+                {visible.main && question.answer ? <AnswerBox answer={question.answer} /> : null}
+              </>
+            ) : null}
+          </div>
+
+          {subquestions.length > 0 ? (
+            <div className="ftq-exam-parts">
+              {subquestions.map(({ answer, letter, question: subquestion }) => (
+                <section key={letter} className="ftq-exam-part animate-fade-in">
+                  <div className="ftq-exam-part-header">
+                    <div className="ftq-exam-part-label">{letter}</div>
+                    <div className="ftq-exam-text" dangerouslySetInnerHTML={renderHtml(subquestion)} />
+                  </div>
+                  <div className="ftq-exam-interaction-row">
+                    <textarea
+                      className="ftq-user-input"
+                      placeholder={t('vocabulary.your_answer')}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <AnswerActions
+                      shown={Boolean(visible[letter])}
+                      status={feedback[letter] ?? 'none'}
+                      onToggle={() => setVisible((current) => ({ ...current, [letter]: !current[letter] }))}
+                      onSuccess={() => setFeedback((current) => ({ ...current, [letter]: 'success' }))}
+                      onFail={() => setFeedback((current) => ({ ...current, [letter]: 'fail' }))}
+                    />
+                  </div>
+                  {visible[letter] && answer ? <AnswerBox answer={answer} /> : null}
+                </section>
+              ))}
+            </div>
+          ) : null}
 
           <QuestionMeta question={question} />
         </div>

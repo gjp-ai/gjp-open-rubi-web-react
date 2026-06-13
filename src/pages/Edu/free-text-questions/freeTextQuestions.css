@@ -683,30 +683,45 @@
   margin-top: 0.25rem;
 }
 
-/* ───── Subquestions (Unified Side-Labeling) ───── */
+/* ───── Subquestions ───── */
+.ftq-exam-parts {
+  display: grid;
+  gap: 0.9rem;
+}
+
 .ftq-exam-part {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 1rem;
-  border-top: 1px dashed var(--color-border);
-  padding-top: 1.5rem;
-  position: relative;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-surface-alt);
+}
+
+.ftq-exam-part-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: flex-start;
 }
 
 .ftq-exam-part-label {
-  position: absolute;
-  left: -2.5rem;
-  top: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  border-radius: 50%;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.55rem;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 999px;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.ftq-exam-part .ftq-user-input {
+  background: var(--color-surface);
 }
 
 .ftq-metadata {
@@ -785,14 +800,11 @@
     padding-bottom: 1.25rem;
   }
 
-  .ftq-exam-part-label {
-    position: static;
-    margin-bottom: -0.5rem;
+  .ftq-exam-interaction-row {
+    flex-direction: column;
   }
-}
 
-@media (min-width: 769px) {
-  .ftq-card.expanded {
-    padding-left: 3.5rem;
+  .ftq-action-buttons {
+    align-self: flex-end;
   }
 }
