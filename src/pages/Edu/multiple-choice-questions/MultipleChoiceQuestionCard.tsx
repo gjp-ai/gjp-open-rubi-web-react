@@ -159,25 +159,6 @@ export const MultipleChoiceQuestionCard = ({
             })}
           </div>
 
-          <QuestionTools>
-            <QuestionToolButton
-              active={showAnswer}
-              disabled={!question.answer}
-              label={t('edu.answer')}
-              onClick={() => setShowAnswer((current) => !current)}
-            >
-              <AnswerIcon />
-            </QuestionToolButton>
-            <QuestionToolButton
-              active={showExplanation}
-              disabled={!question.explanation}
-              label={t('edu.explanation')}
-              onClick={() => setShowExplanation((current) => !current)}
-            >
-              <ExplanationIcon />
-            </QuestionToolButton>
-          </QuestionTools>
-
           {showAnswer ? <AnswerBox question={question} /> : null}
 
           {/* Answer Feedback */}
@@ -198,24 +179,44 @@ export const MultipleChoiceQuestionCard = ({
 
           {/* Question Metadata */}
           <div className="mcq-metadata">
-            {question.difficultyLevel && (
-              <div className="mcq-meta-item">
-                <span className="meta-icon">📊</span>
-                <span className="meta-value difficulty">{question.difficultyLevel}</span>
-              </div>
-            )}
-            {question.successCount !== null && question.successCount !== undefined && (
-              <div className="mcq-meta-item">
-                <span className="meta-icon success">✓</span>
-                <span className="meta-value success">{question.successCount}</span>
-              </div>
-            )}
-            {question.failCount !== null && question.failCount !== undefined && (
-              <div className="mcq-meta-item">
-                <span className="meta-icon fail">✗</span>
-                <span className="meta-value fail">{question.failCount}</span>
-              </div>
-            )}
+            <QuestionTools>
+              <QuestionToolButton
+                active={showAnswer}
+                disabled={!question.answer}
+                label={t('edu.answer')}
+                onClick={() => setShowAnswer((current) => !current)}
+              >
+                <AnswerIcon />
+              </QuestionToolButton>
+              <QuestionToolButton
+                active={showExplanation}
+                disabled={!question.explanation}
+                label={t('edu.explanation')}
+                onClick={() => setShowExplanation((current) => !current)}
+              >
+                <ExplanationIcon />
+              </QuestionToolButton>
+            </QuestionTools>
+            <div className="mcq-metadata-values">
+              {question.difficultyLevel && (
+                <div className="mcq-meta-item">
+                  <span className="meta-icon">📊</span>
+                  <span className="meta-value difficulty">{question.difficultyLevel}</span>
+                </div>
+              )}
+              {question.successCount !== null && question.successCount !== undefined && (
+                <div className="mcq-meta-item">
+                  <span className="meta-icon success">✓</span>
+                  <span className="meta-value success">{question.successCount}</span>
+                </div>
+              )}
+              {question.failCount !== null && question.failCount !== undefined && (
+                <div className="mcq-meta-item">
+                  <span className="meta-icon fail">✗</span>
+                  <span className="meta-value fail">{question.failCount}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

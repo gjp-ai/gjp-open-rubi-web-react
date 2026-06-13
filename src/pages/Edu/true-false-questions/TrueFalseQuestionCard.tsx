@@ -70,24 +70,6 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
           <div className="tfq-card-header-expanded">
             <div className="tfq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
             <div className="tfq-header-controls">
-              <QuestionTools>
-                <QuestionToolButton
-                  active={showAnswer}
-                  disabled={!question.answer}
-                  label={t('edu.answer')}
-                  onClick={() => setShowAnswer((current) => !current)}
-                >
-                  <AnswerIcon />
-                </QuestionToolButton>
-                <QuestionToolButton
-                  active={showExplanation}
-                  disabled={!question.explanation}
-                  label={t('edu.explanation')}
-                  onClick={() => setShowExplanation((current) => !current)}
-                >
-                  <ExplanationIcon />
-                </QuestionToolButton>
-              </QuestionTools>
               <button
                 type="button"
                 className="collapse-btn"
@@ -129,7 +111,27 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
           ) : null}
 
           <div className="tfq-metadata">
-            {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
+            <QuestionTools>
+              <QuestionToolButton
+                active={showAnswer}
+                disabled={!question.answer}
+                label={t('edu.answer')}
+                onClick={() => setShowAnswer((current) => !current)}
+              >
+                <AnswerIcon />
+              </QuestionToolButton>
+              <QuestionToolButton
+                active={showExplanation}
+                disabled={!question.explanation}
+                label={t('edu.explanation')}
+                onClick={() => setShowExplanation((current) => !current)}
+              >
+                <ExplanationIcon />
+              </QuestionToolButton>
+            </QuestionTools>
+            <div className="tfq-metadata-values">
+              {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
+            </div>
           </div>
         </div>
       </div>

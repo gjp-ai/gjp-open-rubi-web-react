@@ -752,11 +752,21 @@
 
 .fbq-metadata {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   color: var(--color-muted);
   font-size: 0.8rem;
   border-top: 1px solid var(--color-border);
   padding-top: 0.75rem;
+}
+
+.fbq-metadata-values {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 /* ───── Responsive ───── */

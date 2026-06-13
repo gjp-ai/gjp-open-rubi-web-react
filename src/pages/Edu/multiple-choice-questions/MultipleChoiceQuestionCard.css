@@ -397,11 +397,19 @@
 .mcq-metadata {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 1rem;
   font-size: 0.8rem;
   border-top: 1px solid var(--color-border);
   padding-top: 0.75rem;
+}
+
+.mcq-metadata-values {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .mcq-meta-item {

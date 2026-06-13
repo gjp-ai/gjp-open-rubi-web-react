@@ -110,24 +110,6 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
           <div className="fbq-card-header-expanded">
             {renderQuestionWithInputs()}
             <div className="fbq-header-controls">
-              <QuestionTools>
-                <QuestionToolButton
-                  active={showAnswer}
-                  disabled={correctAnswers.length === 0 || correctAnswers.every((answer) => !answer)}
-                  label={t('edu.answer')}
-                  onClick={() => setShowAnswer((current) => !current)}
-                >
-                  <AnswerIcon />
-                </QuestionToolButton>
-                <QuestionToolButton
-                  active={showExplanation}
-                  disabled={!question.explanation}
-                  label={t('edu.explanation')}
-                  onClick={() => setShowExplanation((current) => !current)}
-                >
-                  <ExplanationIcon />
-                </QuestionToolButton>
-              </QuestionTools>
               {!isAnswered ? (
                 <button
                   type="button"
@@ -176,7 +158,27 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
           ) : null}
 
           <div className="fbq-metadata">
-            {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
+            <QuestionTools>
+              <QuestionToolButton
+                active={showAnswer}
+                disabled={correctAnswers.length === 0 || correctAnswers.every((answer) => !answer)}
+                label={t('edu.answer')}
+                onClick={() => setShowAnswer((current) => !current)}
+              >
+                <AnswerIcon />
+              </QuestionToolButton>
+              <QuestionToolButton
+                active={showExplanation}
+                disabled={!question.explanation}
+                label={t('edu.explanation')}
+                onClick={() => setShowExplanation((current) => !current)}
+              >
+                <ExplanationIcon />
+              </QuestionToolButton>
+            </QuestionTools>
+            <div className="fbq-metadata-values">
+              {question.difficultyLevel ? <span>{question.difficultyLevel}</span> : null}
+            </div>
           </div>
         </div>
       </div>

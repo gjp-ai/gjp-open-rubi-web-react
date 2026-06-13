@@ -11,8 +11,7 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
   const t = useT()
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [mainAnswer, setMainAnswer] = useState('')
-  const [visible, setVisible] = useState<Record<string, boolean>>({})
-  const [feedback, setFeedback] = useState<Record<string, 'none' | 'success' | 'fail'>>({ main: 'none' })
+  const [showAnswer, setShowAnswer] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
   const subquestions = pairs
     .map((letter) => ({
@@ -26,8 +25,7 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
 
   const reset = () => {
-    setVisible({})
-    setFeedback({ main: 'none' })
+    setShowAnswer(false)
     setMainAnswer('')
     setShowExplanation(false)
   }
@@ -77,16 +75,6 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
             <div className="ftq-exam-question-line">
               <div className="ftq-exam-text" dangerouslySetInnerHTML={renderHtml(question.question || question.description)} />
               <div className="ftq-header-controls">
-                <QuestionTools>
-                  <QuestionToolButton
-                    active={showExplanation}
-                    disabled={!question.explanation}
-                    label={t('edu.explanation')}
-                    onClick={() => setShowExplanation((current) => !current)}
-                  >
-                    <ExplanationIcon />
-                  </QuestionToolButton>
-                </QuestionTools>
                 <button
                   type="button"
                   className="collapse-btn"
@@ -109,15 +97,8 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
                     onChange={(event) => setMainAnswer(event.target.value)}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <AnswerActions
-                    shown={Boolean(visible.main)}
-                    status={feedback.main ?? 'none'}
-                    onToggle={() => setVisible((current) => ({ ...current, main: !current.main }))}
-                    onSuccess={() => setFeedback((current) => ({ ...current, main: 'success' }))}
-                    onFail={() => setFeedback((current) => ({ ...current, main: 'fail' }))}
-                  />
                 </div>
-                {visible.main && question.answer ? <AnswerBox answer={question.answer} /> : null}
+                {showAnswer && question.answer ? <AnswerBox answer={question.answer} /> : null}
               </>
             ) : null}
           </div>
@@ -136,15 +117,8 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
                       placeholder={t('vocabulary.your_answer')}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <AnswerActions
-                      shown={Boolean(visible[letter])}
-                      status={feedback[letter] ?? 'none'}
-                      onToggle={() => setVisible((current) => ({ ...current, [letter]: !current[letter] }))}
-                      onSuccess={() => setFeedback((current) => ({ ...current, [letter]: 'success' }))}
-                      onFail={() => setFeedback((current) => ({ ...current, [letter]: 'fail' }))}
-                    />
                   </div>
-                  {visible[letter] && answer ? <AnswerBox answer={answer} /> : null}
+                  {showAnswer && answer ? <AnswerBox answer={answer} /> : null}
                 </section>
               ))}
             </div>
@@ -157,29 +131,15 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
             </div>
           ) : null}
 
-          <QuestionMeta question={question} />
+          <QuestionMeta
+            question={question}
+            showAnswer={showAnswer}
+            showExplanation={showExplanation}
+            onToggleAnswer={() => setShowAnswer((current) => !current)}
+            onToggleExplanation={() => setShowExplanation((current) => !current)}
+          />
         </div>
       </div>
-    </div>
-  )
-}
-
-const AnswerActions = ({ shown, status, onToggle, onSuccess, onFail }: { shown: boolean; status: 'none' | 'success' | 'fail'; onToggle: () => void; onSuccess: () => void; onFail: () => void }) => {
-  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation()
-    action()
-  }
-  return (
-    <div className="ftq-action-buttons">
-      <button type="button" className={`ftq-icon-btn ${shown ? 'active' : ''}`} onClick={(e) => handleActionClick(e, onToggle)} aria-label="Answer" title="Answer">
-        <AnswerIcon />
-      </button>
-      {shown ? (
-        <>
-          <button type="button" className={`ftq-icon-btn ftq-success-btn ${status === 'success' ? 'selected' : ''}`} onClick={(e) => handleActionClick(e, onSuccess)} disabled={status !== 'none'}>✓</button>
-          <button type="button" className={`ftq-icon-btn ftq-fail-btn ${status === 'fail' ? 'selected' : ''}`} onClick={(e) => handleActionClick(e, onFail)} disabled={status !== 'none'}>×</button>
-        </>
-      ) : null}
     </div>
   )
 }
@@ -194,12 +154,47 @@ const AnswerBox = ({ answer }: { answer: string }) => {
   )
 }
 
-const QuestionMeta = ({ question }: { question: EduQuestion }) => (
-  <div className="ftq-metadata">
-    {question.difficultyLevel ? <span className="difficulty">{question.difficultyLevel}</span> : null}
-    {question.successCount !== null && question.successCount !== undefined ? <span className="success">✓ {question.successCount}</span> : null}
-    {question.failCount !== null && question.failCount !== undefined ? <span className="fail">× {question.failCount}</span> : null}
-  </div>
-)
+const QuestionMeta = ({
+  onToggleAnswer,
+  onToggleExplanation,
+  question,
+  showAnswer,
+  showExplanation,
+}: {
+  onToggleAnswer: () => void
+  onToggleExplanation: () => void
+  question: EduQuestion
+  showAnswer: boolean
+  showExplanation: boolean
+}) => {
+  const t = useT()
+  return (
+    <div className="ftq-metadata">
+      <QuestionTools>
+        <QuestionToolButton
+          active={showAnswer}
+          disabled={!question.answer && !pairs.some((letter) => htmlToText(question[`answer${letter}` as keyof EduQuestion] as string | null | undefined).length > 0)}
+          label={t('edu.answer')}
+          onClick={onToggleAnswer}
+        >
+          <AnswerIcon />
+        </QuestionToolButton>
+        <QuestionToolButton
+          active={showExplanation}
+          disabled={!question.explanation}
+          label={t('edu.explanation')}
+          onClick={onToggleExplanation}
+        >
+          <ExplanationIcon />
+        </QuestionToolButton>
+      </QuestionTools>
+      <div className="ftq-metadata-values">
+        {question.difficultyLevel ? <span className="difficulty">{question.difficultyLevel}</span> : null}
+        {question.successCount !== null && question.successCount !== undefined ? <span className="success">✓ {question.successCount}</span> : null}
+        {question.failCount !== null && question.failCount !== undefined ? <span className="fail">× {question.failCount}</span> : null}
+      </div>
+    </div>
+  )
+}
 
 export default FreeTextQuestionCard
