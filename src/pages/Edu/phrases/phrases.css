@@ -652,6 +652,7 @@
 }
 
 .phrases-page .vocab-action {
+  position: relative;
   width: 44px;
   height: 44px;
   min-height: 44px;
@@ -680,6 +681,25 @@
 .phrases-page .vocab-action:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.phrases-page .vocab-action__shortcut {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 0.56rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.72;
+}
+
+.phrases-page .vocab-action.active .vocab-action__shortcut {
+  color: rgb(255 255 255 / 72%);
 }
 
 .phrases-page .vocab-sort-menu {
