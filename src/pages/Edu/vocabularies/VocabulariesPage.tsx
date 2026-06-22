@@ -74,11 +74,16 @@ export const EduVocabulariesPage = () => {
   const [playInterval, setPlayInterval] = useState(() => readEduPlaySettings(playSettingsKey).interval)
   const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
   const [playPronunciation, setPlayPronunciation] = useState<EduPlayPronunciation>(() => readEduPlaySettings(playSettingsKey).pronunciation)
+  const [hiddenPlayFields, setHiddenPlayFields] = useState<string[]>(() => readEduPlaySettings(playSettingsKey).hiddenFields)
+  const [audioProgress, setAudioProgress] = useState(0)
+  const [playReplayToken, setPlayReplayToken] = useState(0)
   const autoPlayTimerRef = useRef<number | null>(null)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const playQueueRef = useRef<number[]>([])
   const playIntervalRef = useRef(playInterval)
   const playPronunciationRef = useRef(playPronunciation)
+  const autoPlayDeadlineRef = useRef(0)
+  const autoPlayRemainingRef = useRef(0)
   const backendSearchQuery = searchQuery.trim() || undefined
   const backendTag = selectedTags[0]
   const backendFilters = useMemo(
@@ -180,6 +185,8 @@ export const EduVocabulariesPage = () => {
   const startAutoPlay = () => {
     playQueueRef.current = playOrder === 'random' ? shuffleArray(displayItems.map((_, index) => index)) : displayItems.map((_, index) => index)
     setCurrentPlayIndex(0)
+    autoPlayDeadlineRef.current = 0
+    autoPlayRemainingRef.current = 0
     setIsPlayPaused(false)
     setIsAutoPlaying(true)
   }
@@ -188,12 +195,17 @@ export const EduVocabulariesPage = () => {
     setIsAutoPlaying(false)
     setIsPlayPaused(false)
     setCurrentPlayIndex(0)
+    setAudioProgress(0)
+    autoPlayDeadlineRef.current = 0
+    autoPlayRemainingRef.current = 0
     currentAudioRef.current?.pause()
     currentAudioRef.current = null
     if (autoPlayTimerRef.current) {
       clearTimeout(autoPlayTimerRef.current)
       autoPlayTimerRef.current = null
     }
+    autoPlayDeadlineRef.current = 0
+    autoPlayRemainingRef.current = 0
   }, [])
 
   const handleAutoPlay = () => {
@@ -242,6 +254,62 @@ export const EduVocabulariesPage = () => {
     setPlayPronunciation(pronunciation)
   }
 
+  const handleToggleFieldVisibility = (fieldKey: string) => {
+    setHiddenPlayFields((current) => (current.includes(fieldKey) ? current.filter((key) => key !== fieldKey) : [...current, fieldKey]))
+  }
+
+  const handleAudioProgressSeek = (nextProgress: number) => {
+    const audio = currentAudioRef.current
+    setAudioProgress(nextProgress)
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return
+    audio.currentTime = (Math.max(0, Math.min(nextProgress, 100)) / 100) * audio.duration
+  }
+
+  const handlePlayPrevious = useCallback(() => {
+    if (!isAutoPlaying) return
+    if (autoPlayTimerRef.current) {
+      clearTimeout(autoPlayTimerRef.current)
+      autoPlayTimerRef.current = null
+    }
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
+    autoPlayDeadlineRef.current = 0
+    autoPlayRemainingRef.current = 0
+    setAudioProgress(0)
+    setIsPlayPaused(false)
+    setCurrentPlayIndex((index) => Math.max(0, index - 1))
+  }, [isAutoPlaying])
+
+  const handlePlayNext = useCallback(() => {
+    if (!isAutoPlaying) return
+    if (autoPlayTimerRef.current) {
+      clearTimeout(autoPlayTimerRef.current)
+      autoPlayTimerRef.current = null
+    }
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
+    autoPlayDeadlineRef.current = 0
+    autoPlayRemainingRef.current = 0
+    setAudioProgress(0)
+    setIsPlayPaused(false)
+    setCurrentPlayIndex((index) => Math.min(playQueueRef.current.length - 1, index + 1))
+  }, [isAutoPlaying])
+
+  const handlePlayRepeat = useCallback(() => {
+    if (!isAutoPlaying) return
+    if (autoPlayTimerRef.current) {
+      clearTimeout(autoPlayTimerRef.current)
+      autoPlayTimerRef.current = null
+    }
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
+    autoPlayDeadlineRef.current = 0
+    autoPlayRemainingRef.current = 0
+    setAudioProgress(0)
+    setIsPlayPaused(false)
+    setPlayReplayToken((value) => value + 1)
+  }, [isAutoPlaying])
+
   const handleTogglePlayPause = useCallback(() => {
     if (!isAutoPlaying) return
 
@@ -252,44 +320,82 @@ export const EduVocabulariesPage = () => {
           clearTimeout(autoPlayTimerRef.current)
           autoPlayTimerRef.current = null
         }
+        autoPlayRemainingRef.current = Math.max(0, autoPlayDeadlineRef.current - Date.now())
         currentAudioRef.current?.pause()
+      } else {
+        if (autoPlayTimerRef.current) {
+          clearTimeout(autoPlayTimerRef.current)
+          autoPlayTimerRef.current = null
+        }
+        const audio = currentAudioRef.current
+        if (audio && !audio.ended) {
+          audio.play().catch((error) => {
+            console.error('Audio playback failed:', error)
+          })
+        }
+        const delay = autoPlayRemainingRef.current > 0 ? autoPlayRemainingRef.current : playIntervalRef.current
+        autoPlayDeadlineRef.current = Date.now() + delay
+        autoPlayTimerRef.current = window.setTimeout(() => {
+          autoPlayTimerRef.current = null
+          if (currentPlayIndex < playQueueRef.current.length - 1) {
+            setCurrentPlayIndex((index) => index + 1)
+          } else {
+            stopAutoPlay()
+          }
+        }, delay)
       }
       return nextPaused
     })
-  }, [isAutoPlaying])
+  }, [currentPlayIndex, isAutoPlaying, stopAutoPlay])
 
   useEffect(() => {
     playIntervalRef.current = playInterval
     playPronunciationRef.current = playPronunciation
-    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: playPronunciation })
-  }, [playInterval, playOrder, playPronunciation])
+    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: playPronunciation, hiddenFields: hiddenPlayFields })
+  }, [hiddenPlayFields, playInterval, playOrder, playPronunciation])
 
   useEffect(() => {
-    if (!isAutoPlaying || isPlayPaused || displayItems.length === 0) return undefined
+    if (!isAutoPlaying || displayItems.length === 0) return undefined
 
     const itemIndex = playQueueRef.current[currentPlayIndex] ?? currentPlayIndex
     const vocabulary = displayItems[itemIndex]
     const audioUrl = vocabulary ? getAudioUrl(vocabulary, playPronunciationRef.current) : undefined
 
+    setAudioProgress(0)
     if (audioUrl) {
       currentAudioRef.current?.pause()
       const audio = new Audio(audioUrl)
       currentAudioRef.current = audio
+      audio.ontimeupdate = () => {
+        if (!Number.isFinite(audio.duration) || audio.duration <= 0) return
+        setAudioProgress(Math.min(100, (audio.currentTime / audio.duration) * 100))
+      }
+      audio.onended = () => setAudioProgress(100)
+      audio.onerror = () => setAudioProgress(0)
       audio.play().catch((err) => console.error('Error playing audio:', err))
     }
 
     if (currentPlayIndex < playQueueRef.current.length - 1) {
-      autoPlayTimerRef.current = window.setTimeout(() => setCurrentPlayIndex((index) => index + 1), playIntervalRef.current)
+      autoPlayDeadlineRef.current = Date.now() + playIntervalRef.current
+      autoPlayTimerRef.current = window.setTimeout(() => {
+        autoPlayTimerRef.current = null
+        setCurrentPlayIndex((index) => index + 1)
+      }, playIntervalRef.current)
     } else {
-      autoPlayTimerRef.current = window.setTimeout(stopAutoPlay, playIntervalRef.current)
+      autoPlayDeadlineRef.current = Date.now() + playIntervalRef.current
+      autoPlayTimerRef.current = window.setTimeout(() => {
+        autoPlayTimerRef.current = null
+        stopAutoPlay()
+      }, playIntervalRef.current)
     }
 
     return () => {
       if (autoPlayTimerRef.current) {
         clearTimeout(autoPlayTimerRef.current)
+        autoPlayTimerRef.current = null
       }
     }
-  }, [currentPlayIndex, displayItems, isAutoPlaying, isPlayPaused, stopAutoPlay])
+  }, [currentPlayIndex, displayItems, isAutoPlaying, playReplayToken, stopAutoPlay])
 
   useEffect(() => stopAutoPlay, [stopAutoPlay])
 
@@ -302,44 +408,22 @@ export const EduVocabulariesPage = () => {
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
   const currentPlaySubtitle = formatPhonetics(currentPlayItem)
   const currentPlayDescription = currentPlayItem ? currentPlayItem.definition || currentPlayItem.example || currentPlayItem.synonyms || '' : ''
-  const currentPlayMeta = currentPlayItem ? [currentPlayItem.partOfSpeech, currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
+  const currentPlayHeroFields: EduPlayField[] = currentPlayItem ? [
+    { key: 'subtitle', label: t('vocabulary.phonetic'), value: currentPlaySubtitle },
+    { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
+    { key: 'partOfSpeech', label: t('vocabulary.part_of_speech'), value: currentPlayItem.partOfSpeech },
+    { key: 'difficultyLevel', label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
+    { key: 'tags', label: 'Tags', value: currentPlayItem.tags },
+  ] : []
   const currentPlayFields: EduPlayField[] = currentPlayItem ? [
-    { label: 'Phonetic', value: currentPlaySubtitle },
-    { label: t('vocabulary.part_of_speech'), value: currentPlayItem.partOfSpeech },
-    { label: t('vocabulary.translation'), value: currentPlayItem.translation },
-    { label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
-    { label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
-    { label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
-    { label: t('vocabulary.definition'), value: currentPlayItem.definition },
-    { label: t('vocabulary.synonyms'), value: currentPlayItem.synonyms },
-    { label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
-    { label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
-    { label: t('vocabulary.example'), value: currentPlayItem.example },
-    { label: t('edu.explanation'), value: currentPlayItem.explanation },
-    { label: t('vocabulary.plural'), value: currentPlayItem.nounPluralForm },
-    { label: t('vocabulary.simple_past'), value: currentPlayItem.verbSimplePastTense },
-    { label: t('vocabulary.past_perfect'), value: currentPlayItem.verbPastPerfectTense },
-    { label: t('vocabulary.present_participle'), value: currentPlayItem.verbPresentParticiple },
-    { label: t('vocabulary.comparative'), value: currentPlayItem.adjectiveComparativeForm },
-    { label: t('vocabulary.superlative'), value: currentPlayItem.adjectiveSuperlativeForm },
-    { label: 'Noun form', value: currentPlayItem.nounForm },
-    { label: 'Noun meaning', value: currentPlayItem.nounMeaning },
-    { label: 'Noun example', value: currentPlayItem.nounExample },
-    { label: 'Verb form', value: currentPlayItem.verbForm },
-    { label: 'Verb meaning', value: currentPlayItem.verbMeaning },
-    { label: 'Verb example', value: currentPlayItem.verbExample },
-    { label: 'Adjective form', value: currentPlayItem.adjectiveForm },
-    { label: 'Adjective meaning', value: currentPlayItem.adjectiveMeaning },
-    { label: 'Adjective example', value: currentPlayItem.adjectiveExample },
-    { label: 'Adverb form', value: currentPlayItem.adverbForm },
-    { label: 'Adverb meaning', value: currentPlayItem.adverbMeaning },
-    { label: 'Adverb example', value: currentPlayItem.adverbExample },
-    { label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
-    { label: t('vocabulary.term'), value: currentPlayItem.term },
-    { label: t('vocabulary.week'), value: currentPlayItem.week },
-    { label: 'Tags', value: currentPlayItem.tags },
-    { label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
-    { label: t('vocabulary.view_dictionary'), value: currentPlayItem.dictionaryUrl },
+    { key: 'synonyms', label: t('vocabulary.synonyms'), value: currentPlayItem.synonyms },
+    { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
+    { key: 'easyMeaning', label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
+    { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
+    { key: 'sentenceOne', label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
+    { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
+    { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
+    { key: 'dictionaryUrl', label: t('vocabulary.view_dictionary'), value: currentPlayItem.dictionaryUrl },
   ] : []
 
   return (
@@ -524,12 +608,21 @@ export const EduVocabulariesPage = () => {
           pronunciation={playPronunciation}
           isPaused={isPlayPaused}
           currentTitle={currentPlayItem?.name ?? ''}
-          currentSubtitle={currentPlaySubtitle}
           currentDescription={currentPlayDescription}
-          currentMeta={currentPlayMeta}
+          heroFields={currentPlayHeroFields}
           fullScreenFields={currentPlayFields}
+          fullScreenTitlePlacement="stage"
+          hiddenFieldKeys={hiddenPlayFields}
+          startFullScreen
+          progress={audioProgress}
           onStop={stopAutoPlay}
+          onPrevious={handlePlayPrevious}
+          onRepeat={handlePlayRepeat}
+          onNext={handlePlayNext}
           onTogglePause={handleTogglePlayPause}
+          onHiddenFieldKeysChange={setHiddenPlayFields}
+          onToggleFieldVisibility={handleToggleFieldVisibility}
+          onProgressSeek={handleAudioProgressSeek}
           onIntervalChange={handlePlayIntervalChange}
           onOrderChange={handlePlayOrderChange}
           onPronunciationChange={handlePlayPronunciationChange}

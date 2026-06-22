@@ -1008,7 +1008,21 @@
   color: #111418;
   font-size: 18px;
   line-height: 1.4;
-  font-weight: 780;
+  font-weight: 500;
+}
+
+.sentence-card-sentence p {
+  margin: 0;
+}
+
+.sentence-card-sentence strong,
+.sentence-card-sentence b {
+  font-weight: 850;
+}
+
+.sentence-card-sentence em,
+.sentence-card-sentence i {
+  font-style: italic;
 }
 
 .sentence-card-phonetics {

@@ -4,12 +4,14 @@ export interface EduPlaySettings {
   interval: number
   order: EduPlayOrder
   pronunciation: EduPlayPronunciation
+  hiddenFields: string[]
 }
 
 const DEFAULT_PLAY_SETTINGS: EduPlaySettings = {
   interval: 5000,
   order: 'sequence',
   pronunciation: 'us',
+  hiddenFields: [],
 }
 
 const settingsKey = (kind: string) => `gjp.edu.${kind}.playSettings`
@@ -25,6 +27,7 @@ export const readEduPlaySettings = (kind: string): EduPlaySettings => {
       interval: typeof parsed.interval === 'number' && parsed.interval > 0 ? parsed.interval : DEFAULT_PLAY_SETTINGS.interval,
       order: parsed.order === 'random' ? 'random' : DEFAULT_PLAY_SETTINGS.order,
       pronunciation: parsed.pronunciation === 'uk' ? 'uk' : DEFAULT_PLAY_SETTINGS.pronunciation,
+      hiddenFields: Array.isArray(parsed.hiddenFields) ? parsed.hiddenFields.filter((field): field is string => typeof field === 'string') : DEFAULT_PLAY_SETTINGS.hiddenFields,
     }
   } catch {
     return DEFAULT_PLAY_SETTINGS
@@ -40,4 +43,3 @@ export const saveEduPlaySettings = (kind: string, settings: EduPlaySettings) => 
     // Ignore storage write errors.
   }
 }
-

@@ -72,6 +72,8 @@ export const EduSentencesPage = () => {
   const [playProgress, setPlayProgress] = useState(0)
   const [playInterval, setPlayInterval] = useState(() => readEduPlaySettings(playSettingsKey).interval)
   const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
+  const [hiddenPlayFields, setHiddenPlayFields] = useState<string[]>(() => readEduPlaySettings(playSettingsKey).hiddenFields)
+  const [playReplayToken, setPlayReplayToken] = useState(0)
   const autoPlayTimerRef = useRef<number | null>(null)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const playQueueRef = useRef<number[]>([])
@@ -229,6 +231,49 @@ export const EduSentencesPage = () => {
     setPlayOrder(order)
   }
 
+  const handleToggleFieldVisibility = (fieldKey: string) => {
+    setHiddenPlayFields((current) => (current.includes(fieldKey) ? current.filter((key) => key !== fieldKey) : [...current, fieldKey]))
+  }
+
+  const handlePlayPrevious = useCallback(() => {
+    if (!isAutoPlaying) return
+    if (autoPlayTimerRef.current) {
+      clearTimeout(autoPlayTimerRef.current)
+      autoPlayTimerRef.current = null
+    }
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
+    setPlayProgress(0)
+    setIsPlayPaused(false)
+    setCurrentPlayIndex((index) => Math.max(0, index - 1))
+  }, [isAutoPlaying])
+
+  const handlePlayNext = useCallback(() => {
+    if (!isAutoPlaying) return
+    if (autoPlayTimerRef.current) {
+      clearTimeout(autoPlayTimerRef.current)
+      autoPlayTimerRef.current = null
+    }
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
+    setPlayProgress(0)
+    setIsPlayPaused(false)
+    setCurrentPlayIndex((index) => Math.min(playQueueRef.current.length - 1, index + 1))
+  }, [isAutoPlaying])
+
+  const handlePlayRepeat = useCallback(() => {
+    if (!isAutoPlaying) return
+    if (autoPlayTimerRef.current) {
+      clearTimeout(autoPlayTimerRef.current)
+      autoPlayTimerRef.current = null
+    }
+    currentAudioRef.current?.pause()
+    currentAudioRef.current = null
+    setPlayProgress(0)
+    setIsPlayPaused(false)
+    setPlayReplayToken((value) => value + 1)
+  }, [isAutoPlaying])
+
   const handleTogglePlayPause = useCallback(() => {
     if (!isAutoPlaying) return
 
@@ -269,8 +314,8 @@ export const EduSentencesPage = () => {
 
   useEffect(() => {
     playIntervalRef.current = playInterval
-    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: 'us' })
-  }, [playInterval, playOrder])
+    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: 'us', hiddenFields: hiddenPlayFields })
+  }, [hiddenPlayFields, playInterval, playOrder])
 
   useEffect(() => {
     isPlayPausedRef.current = isPlayPaused
@@ -325,7 +370,7 @@ export const EduSentencesPage = () => {
         currentAudioRef.current.pause()
       }
     }
-  }, [currentPlayIndex, displayItems, isAutoPlaying, stopAutoPlay])
+  }, [currentPlayIndex, displayItems, isAutoPlaying, playReplayToken, stopAutoPlay])
 
   useEffect(() => stopAutoPlay, [stopAutoPlay])
 
@@ -333,21 +378,21 @@ export const EduSentencesPage = () => {
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
   const currentPlaySubtitle = formatPhonetics(currentPlayItem)
   const currentPlayDescription = currentPlayItem ? currentPlayItem.sentenceOne || currentPlayItem.sentenceTwo || currentPlayItem.explanation || '' : ''
-  const currentPlayMeta = currentPlayItem ? [currentPlayItem.difficultyLevel, currentPlayItem.term ? `${t('vocabulary.term')} ${currentPlayItem.term}` : '', currentPlayItem.week ? `${t('vocabulary.week')} ${currentPlayItem.week}` : ''].filter(Boolean).join(' · ') : ''
+  const currentPlayHeroFields: EduPlayField[] = currentPlayItem ? [
+    { key: 'subtitle', label: t('vocabulary.phonetic'), value: currentPlaySubtitle },
+    { key: 'difficultyLevel', label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
+    { key: 'term', label: t('vocabulary.term'), value: currentPlayItem.term },
+    { key: 'week', label: t('vocabulary.week'), value: currentPlayItem.week },
+    { key: 'tags', label: 'Tags', value: currentPlayItem.tags },
+  ] : []
   const currentPlayFields: EduPlayField[] = currentPlayItem ? [
-    { label: 'Phonetic', value: currentPlaySubtitle },
-    { label: t('vocabulary.translation'), value: currentPlayItem.translation },
-    { label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
-    { label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
-    { label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
-    { label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
-    { label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
-    { label: t('edu.explanation'), value: currentPlayItem.explanation },
-    { label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
-    { label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
-    { label: t('vocabulary.term'), value: currentPlayItem.term },
-    { label: t('vocabulary.week'), value: currentPlayItem.week },
-    { label: 'Tags', value: currentPlayItem.tags },
+    { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
+    { key: 'easyMeaning', label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
+    { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning ?? currentPlayItem.explanation },
+    { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
+    { key: 'sentenceOne', label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
+    { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
+    { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
   ] : []
 
   return (
@@ -488,13 +533,21 @@ export const EduSentencesPage = () => {
           order={playOrder}
           isPaused={isPlayPaused}
           currentTitle={currentPlayItem?.name ?? ''}
-          currentSubtitle={currentPlaySubtitle}
           currentDescription={currentPlayDescription}
-          currentMeta={currentPlayMeta}
+          heroFields={currentPlayHeroFields}
           fullScreenFields={currentPlayFields}
+          fullScreenTitlePlacement="stage"
+          fullScreenVariant="sentence"
+          hiddenFieldKeys={hiddenPlayFields}
+          startFullScreen
           progress={playProgress}
           onStop={stopAutoPlay}
+          onPrevious={handlePlayPrevious}
+          onRepeat={handlePlayRepeat}
+          onNext={handlePlayNext}
           onTogglePause={handleTogglePlayPause}
+          onHiddenFieldKeysChange={setHiddenPlayFields}
+          onToggleFieldVisibility={handleToggleFieldVisibility}
           onProgressSeek={handlePlayProgressSeek}
           onIntervalChange={handlePlayIntervalChange}
           onOrderChange={handlePlayOrderChange}
