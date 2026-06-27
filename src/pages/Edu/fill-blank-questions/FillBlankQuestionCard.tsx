@@ -1,24 +1,29 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
+import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { toggleEduQuestionFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
 import '../question-common/questionCardTools.css'
 
-export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
+export const FillBlankQuestionCard = ({ question: initialQuestion, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
+  const [question, setQuestion] = useState(initialQuestion)
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
   const [isAnswered, setIsAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [showAnswer, setShowAnswer] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const { blankCount, correctAnswers } = useMemo(() => {
     const count = (htmlToText(question.question).match(/____/g) || []).length
     return { blankCount: count, correctAnswers: (question.answer ?? '').split(',').map((answer) => answer.trim()) }
   }, [question.answer, question.question])
 
+  useEffect(() => setQuestion(initialQuestion), [initialQuestion])
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
   useEffect(() => {
     setUserAnswers(new Array(blankCount).fill(''))
@@ -97,6 +102,16 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
     [isExpanded, blankCount]
   )
 
+  const handleToggleFavorite = useCallback(async () => {
+    setIsTogglingFavorite(true)
+    try {
+      const response = await toggleEduQuestionFavoriteTag('fill-blank-questions', question.id)
+      setQuestion(response.data)
+    } finally {
+      setIsTogglingFavorite(false)
+    }
+  }, [question.id])
+
   return (
     <div
       className={`fbq-card ${isExpanded ? 'expanded' : 'collapsed'}`}
@@ -162,6 +177,12 @@ export const FillBlankQuestionCard = ({ question, isExpandedView }: { question: 
 
           <div className="fbq-metadata">
             <QuestionTools>
+              <FavoriteToggleButton
+                active={hasFavoriteTag(question)}
+                className="edu-question-tool-btn"
+                disabled={isTogglingFavorite}
+                onClick={handleToggleFavorite}
+              />
               <QuestionToolButton
                 active={showAnswer}
                 disabled={correctAnswers.length === 0 || correctAnswers.every((answer) => !answer)}

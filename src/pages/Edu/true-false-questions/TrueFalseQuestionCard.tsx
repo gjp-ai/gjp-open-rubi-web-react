@@ -1,19 +1,24 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
+import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { toggleEduQuestionFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
 import '../question-common/questionCardTools.css'
 
-export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
+export const TrueFalseQuestionCard = ({ question: initialQuestion, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
+  const [question, setQuestion] = useState(initialQuestion)
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [isAnswered, setIsAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [selectedAnswer, setSelectedAnswer] = useState<'TRUE' | 'FALSE' | null>(null)
   const [showAnswer, setShowAnswer] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
 
+  useEffect(() => setQuestion(initialQuestion), [initialQuestion])
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
 
   const answer = (value: 'TRUE' | 'FALSE') => {
@@ -54,6 +59,16 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
     },
     [isExpanded]
   )
+
+  const handleToggleFavorite = useCallback(async () => {
+    setIsTogglingFavorite(true)
+    try {
+      const response = await toggleEduQuestionFavoriteTag('true-false-questions', question.id)
+      setQuestion(response.data)
+    } finally {
+      setIsTogglingFavorite(false)
+    }
+  }, [question.id])
 
   return (
     <div
@@ -115,6 +130,12 @@ export const TrueFalseQuestionCard = ({ question, isExpandedView }: { question: 
 
           <div className="tfq-metadata">
             <QuestionTools>
+              <FavoriteToggleButton
+                active={hasFavoriteTag(question)}
+                className="edu-question-tool-btn"
+                disabled={isTogglingFavorite}
+                onClick={handleToggleFavorite}
+              />
               <QuestionToolButton
                 active={showAnswer}
                 disabled={!question.answer}

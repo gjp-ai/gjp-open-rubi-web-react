@@ -750,6 +750,28 @@ img {
   font-weight: 500;
 }
 
+.favourite-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.favourite-toggle-btn.active {
+  border-color: color-mix(in srgb, #f59e0b 72%, var(--color-border));
+  background: color-mix(in srgb, #f59e0b 18%, var(--color-surface));
+  color: #d97706;
+}
+
+.favourite-toggle-btn.active:hover:not(:disabled) {
+  border-color: #d97706;
+  background: color-mix(in srgb, #f59e0b 24%, var(--color-surface));
+  color: #b45309;
+}
+
+.favourite-toggle-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .grid {
   display: grid;
   gap: 1.5rem;

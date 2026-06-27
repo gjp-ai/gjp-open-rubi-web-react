@@ -79,3 +79,15 @@ export const getEduQuestionImages = (
     }),
     { signal },
   )
+
+export const toggleEduLearningFavoriteTag = (kind: EduLearningKind, id: string) =>
+  fetchOpenApiJson<ApiListResponse<EduLearningItem>>(
+    createOpenApiUrl(`${learningPaths[kind]}/${id}/favorite-tag`),
+    { method: 'PATCH' },
+  )
+
+export const toggleEduQuestionFavoriteTag = (kind: EduQuestionKind, id: string) =>
+  fetchOpenApiJson<ApiListResponse<EduQuestion>>(
+    createOpenApiUrl(`${questionPaths[kind]}/${id}/favorite-tag`),
+    { method: 'PATCH' },
+  )

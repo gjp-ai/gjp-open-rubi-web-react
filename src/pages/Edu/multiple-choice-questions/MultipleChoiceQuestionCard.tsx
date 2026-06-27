@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
+import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { toggleEduQuestionFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
 import '../question-common/questionCardTools.css'
@@ -9,21 +11,24 @@ import './MultipleChoiceQuestionCard.css'
 const options = ['A', 'B', 'C', 'D'] as const
 
 export const MultipleChoiceQuestionCard = ({
-  question,
+  question: initialQuestion,
   isExpandedView,
 }: {
   question: EduQuestion
   isExpandedView: boolean
 }) => {
   const t = useT()
+  const [question, setQuestion] = useState(initialQuestion)
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([])
   const [isCorrect, setIsCorrect] = useState(false)
   const [errorOption, setErrorOption] = useState<string | null>(null)
   const [showAnswer, setShowAnswer] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const errorTimeoutRef = useRef<number | null>(null)
 
+  useEffect(() => setQuestion(initialQuestion), [initialQuestion])
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
   useEffect(
     () => () => {
@@ -109,6 +114,16 @@ export const MultipleChoiceQuestionCard = ({
     [isExpanded],
   )
 
+  const handleToggleFavorite = useCallback(async () => {
+    setIsTogglingFavorite(true)
+    try {
+      const response = await toggleEduQuestionFavoriteTag('multiple-choice-questions', question.id)
+      setQuestion(response.data)
+    } finally {
+      setIsTogglingFavorite(false)
+    }
+  }, [question.id])
+
   return (
     <div
       className={`mcq-card ${isExpanded ? 'expanded' : 'collapsed'}`}
@@ -178,6 +193,12 @@ export const MultipleChoiceQuestionCard = ({
           {/* Question Metadata */}
           <div className="mcq-metadata">
             <QuestionTools>
+              <FavoriteToggleButton
+                active={hasFavoriteTag(question)}
+                className="edu-question-tool-btn"
+                disabled={isTogglingFavorite}
+                onClick={handleToggleFavorite}
+              />
               <QuestionToolButton
                 active={showAnswer}
                 disabled={!question.answer}

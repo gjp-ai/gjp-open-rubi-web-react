@@ -2,6 +2,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import type { EduLearningItem } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
+import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { toggleEduLearningFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml, splitTags } from '../eduUtils'
 
 type ToggleSection = 'translation' | 'meaningClue' | 'easyMeaning' | 'meaning' | 'sentenceOne' | 'sentenceTwo' | 'additionalInfo'
@@ -47,18 +49,21 @@ export const SentenceDetail = ({
   hasNext: boolean
 }) => {
   const t = useT()
+  const [currentSentence, setCurrentSentence] = useState(sentence)
   const [open, setOpen] = useState(initialOpen)
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true)
   const [audioProgress, setAudioProgress] = useState(0)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [activeAudioLabel, setActiveAudioLabel] = useState('')
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const pronunciations = useMemo(() => getPronunciations(sentence), [sentence])
+  const pronunciations = useMemo(() => getPronunciations(currentSentence), [currentSentence])
   const allOpen = Object.values(open).every(Boolean)
-  const tags = splitTags(sentence.tags)
-  const hasMeta = tags.length > 0 || sentence.term || sentence.week || sentence.difficultyLevel
+  const tags = splitTags(currentSentence.tags)
+  const hasMeta = tags.length > 0 || currentSentence.term || currentSentence.week || currentSentence.difficultyLevel
+  const isFavourite = hasFavoriteTag(currentSentence)
 
   const resetAudioState = useCallback(() => {
     setAudioProgress(0)
@@ -89,19 +94,33 @@ export const SentenceDetail = ({
     })
   }, [resetAudioState])
 
+  const handleToggleFavorite = useCallback(async () => {
+    setIsTogglingFavorite(true)
+    try {
+      const response = await toggleEduLearningFavoriteTag('sentences', currentSentence.id)
+      setCurrentSentence(response.data)
+    } finally {
+      setIsTogglingFavorite(false)
+    }
+  }, [currentSentence.id])
+
+  useEffect(() => {
+    setCurrentSentence(sentence)
+  }, [sentence])
+
   useEffect(() => {
     if (!autoPlayEnabled) return undefined
-    const audioUrl = getAutoPlayAudioUrl(sentence)
+    const audioUrl = getAutoPlayAudioUrl(currentSentence)
     if (!audioUrl) return undefined
     const timer = window.setTimeout(() => playAudio(audioUrl, t('vocabulary.auto_play')), 180)
     return () => window.clearTimeout(timer)
-  }, [autoPlayEnabled, playAudio, sentence, t])
+  }, [autoPlayEnabled, currentSentence, playAudio, t])
 
   useEffect(() => {
     audioRef.current?.pause()
     audioRef.current = null
     resetAudioState()
-  }, [resetAudioState, sentence.id])
+  }, [currentSentence.id, resetAudioState])
 
   useEffect(() => {
     previousActiveElement.current = document.activeElement as HTMLElement
@@ -143,6 +162,12 @@ export const SentenceDetail = ({
               <path d="M6 6 18 18M18 6 6 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
             </svg>
           </button>
+          <FavoriteToggleButton
+            active={isFavourite}
+            className="detail-action-btn"
+            disabled={isTogglingFavorite}
+            onClick={handleToggleFavorite}
+          />
           <button type="button" className="detail-action-btn" onClick={() => setOpen(Object.fromEntries(Object.keys(initialOpen).map((key) => [key, !allOpen])) as Record<ToggleSection, boolean>)} title={allOpen ? t('vocabulary.collapse_all') : t('vocabulary.expand_all')}>
             {allOpen ? '−' : '+'}
           </button>
@@ -152,7 +177,7 @@ export const SentenceDetail = ({
           <div className="detail-hero">
             <div className="detail-hero__main">
               <p className="detail-eyebrow">{t('nav.edu_sentences')}</p>
-              <div className="detail-word" dangerouslySetInnerHTML={renderHtml(sentence.name)} />
+              <div className="detail-word" dangerouslySetInnerHTML={renderHtml(currentSentence.name)} />
               {pronunciations.length ? (
                 <div className="detail-pronunciation-list">
                   {pronunciations.map((item) => (
@@ -182,21 +207,21 @@ export const SentenceDetail = ({
 
           {hasMeta ? (
             <div className="detail-meta-info detail-meta-info--row">
-              {sentence.term ? <span className="detail-meta-item">{t('vocabulary.term')} {sentence.term}</span> : null}
-              {sentence.week ? <span className="detail-meta-item">{t('vocabulary.week')} {sentence.week}</span> : null}
-              {sentence.difficultyLevel ? <span className="detail-difficulty">{sentence.difficultyLevel}</span> : null}
+              {currentSentence.term ? <span className="detail-meta-item">{t('vocabulary.term')} {currentSentence.term}</span> : null}
+              {currentSentence.week ? <span className="detail-meta-item">{t('vocabulary.week')} {currentSentence.week}</span> : null}
+              {currentSentence.difficultyLevel ? <span className="detail-difficulty">{currentSentence.difficultyLevel}</span> : null}
               {tags.map((tag) => <span key={tag} className="detail-tag">{tag}</span>)}
             </div>
           ) : null}
 
           <div className="detail-section-grid">
-            {section('translation', t('vocabulary.translation'), sentence.translation)}
-            {section('meaningClue', t('vocabulary.meaning_clue'), sentence.meaningClue)}
-            {section('easyMeaning', t('vocabulary.easy_meaning'), sentence.easyMeaning)}
-            {section('meaning', t('vocabulary.meaning'), sentence.meaning ?? sentence.explanation)}
-            {section('sentenceOne', t('vocabulary.sentence_one'), sentence.sentenceOne)}
-            {section('sentenceTwo', t('vocabulary.sentence_two'), sentence.sentenceTwo)}
-            {section('additionalInfo', t('vocabulary.additional_info'), sentence.additionalInfo)}
+            {section('translation', t('vocabulary.translation'), currentSentence.translation)}
+            {section('meaningClue', t('vocabulary.meaning_clue'), currentSentence.meaningClue)}
+            {section('easyMeaning', t('vocabulary.easy_meaning'), currentSentence.easyMeaning)}
+            {section('meaning', t('vocabulary.meaning'), currentSentence.meaning ?? currentSentence.explanation)}
+            {section('sentenceOne', t('vocabulary.sentence_one'), currentSentence.sentenceOne)}
+            {section('sentenceTwo', t('vocabulary.sentence_two'), currentSentence.sentenceTwo)}
+            {section('additionalInfo', t('vocabulary.additional_info'), currentSentence.additionalInfo)}
           </div>
         </div>
 

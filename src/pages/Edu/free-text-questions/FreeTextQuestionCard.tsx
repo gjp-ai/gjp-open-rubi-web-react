@@ -1,20 +1,24 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
+import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { toggleEduQuestionFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
 import '../question-common/questionCardTools.css'
 
 const pairs = ['A', 'B', 'C', 'D', 'E', 'F'] as const
 
-export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
+export const FreeTextQuestionCard = ({ question: initialQuestion, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
   const t = useT()
+  const [question, setQuestion] = useState(initialQuestion)
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
   const [mainAnswer, setMainAnswer] = useState('')
   const [subAnswers, setSubAnswers] = useState<Record<string, string>>({})
   const [revealedSubAnswers, setRevealedSubAnswers] = useState<Record<string, boolean>>({})
   const [showAnswer, setShowAnswer] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const subquestions = pairs
     .map((letter) => ({
       answer: question[`answer${letter}` as keyof EduQuestion] as string | null | undefined,
@@ -24,6 +28,7 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
     .filter((item) => htmlToText(item.question).length > 0 || htmlToText(item.answer).length > 0)
   const hasSubquestions = subquestions.some((item) => htmlToText(item.question).length > 0)
 
+  useEffect(() => setQuestion(initialQuestion), [initialQuestion])
   useEffect(() => setIsExpanded(isExpandedView), [isExpandedView])
 
   const reset = () => {
@@ -66,6 +71,16 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
     },
     [isExpanded]
   )
+
+  const handleToggleFavorite = useCallback(async () => {
+    setIsTogglingFavorite(true)
+    try {
+      const response = await toggleEduQuestionFavoriteTag('free-text-questions', question.id)
+      setQuestion(response.data)
+    } finally {
+      setIsTogglingFavorite(false)
+    }
+  }, [question.id])
 
   return (
     <div
@@ -166,6 +181,9 @@ export const FreeTextQuestionCard = ({ question, isExpandedView }: { question: E
             showExplanation={showExplanation}
             onToggleAnswer={toggleMainAnswer}
             onToggleExplanation={() => setShowExplanation((current) => !current)}
+            onToggleFavorite={handleToggleFavorite}
+            isFavourite={hasFavoriteTag(question)}
+            isTogglingFavorite={isTogglingFavorite}
           />
         </div>
       </div>
@@ -177,21 +195,33 @@ const QuestionMeta = ({
   hasSubquestions,
   onToggleAnswer,
   onToggleExplanation,
+  onToggleFavorite,
   question,
   showAnswer,
   showExplanation,
+  isFavourite,
+  isTogglingFavorite,
 }: {
   onToggleAnswer: () => void
   onToggleExplanation: () => void
+  onToggleFavorite: () => void
   hasSubquestions: boolean
   question: EduQuestion
   showAnswer: boolean
   showExplanation: boolean
+  isFavourite: boolean
+  isTogglingFavorite: boolean
 }) => {
   const t = useT()
   return (
     <div className="ftq-metadata">
       <QuestionTools>
+        <FavoriteToggleButton
+          active={isFavourite}
+          className="edu-question-tool-btn"
+          disabled={isTogglingFavorite}
+          onClick={onToggleFavorite}
+        />
         {!hasSubquestions ? (
           <QuestionToolButton
             active={showAnswer}

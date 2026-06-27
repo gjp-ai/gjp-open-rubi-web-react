@@ -2,6 +2,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useT } from '../../../shared/i18n'
 import { getSafeUrl } from '../../../shared/security/safeUrl'
+import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { toggleEduLearningFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml, splitTags } from '../eduUtils'
 import type { PronunciationVariant, VocabularyItem } from './types'
 
@@ -70,18 +72,21 @@ export const VocabularyDetail = ({
   autoPlayPronunciation?: PronunciationVariant
 }) => {
   const t = useT()
+  const [currentVocabulary, setCurrentVocabulary] = useState(vocabulary)
   const [toggleStates, setToggleStates] = useState(initialToggleStates)
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true)
   const [selectedAutoPlayPronunciation, setSelectedAutoPlayPronunciation] = useState<PronunciationVariant>(autoPlayPronunciation)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const allExpanded = Object.values(toggleStates).every(Boolean)
-  const imageUrl = getSafeUrl(vocabulary.imageUrl)
-  const dictionaryUrl = getSafeUrl(vocabulary.dictionaryUrl)
-  const pronunciations = useMemo(() => getPronunciations(vocabulary), [vocabulary])
-  const tags = splitTags(vocabulary.tags)
-  const hasMeta = tags.length > 0 || vocabulary.term || vocabulary.week || vocabulary.difficultyLevel || vocabulary.partOfSpeech
+  const imageUrl = getSafeUrl(currentVocabulary.imageUrl)
+  const dictionaryUrl = getSafeUrl(currentVocabulary.dictionaryUrl)
+  const pronunciations = useMemo(() => getPronunciations(currentVocabulary), [currentVocabulary])
+  const tags = splitTags(currentVocabulary.tags)
+  const hasMeta = tags.length > 0 || currentVocabulary.term || currentVocabulary.week || currentVocabulary.difficultyLevel || currentVocabulary.partOfSpeech
+  const isFavourite = hasFavoriteTag(currentVocabulary)
 
   const toggleSection = useCallback((section: ToggleSection) => {
     setToggleStates((current) => ({ ...current, [section]: !current[section] }))
@@ -99,15 +104,29 @@ export const VocabularyDetail = ({
     audioRef.current.play().catch((error) => console.error('Audio playback failed:', error))
   }, [])
 
+  const handleToggleFavorite = useCallback(async () => {
+    setIsTogglingFavorite(true)
+    try {
+      const response = await toggleEduLearningFavoriteTag('vocabularies', currentVocabulary.id)
+      setCurrentVocabulary(response.data)
+    } finally {
+      setIsTogglingFavorite(false)
+    }
+  }, [currentVocabulary.id])
+
+  useEffect(() => {
+    setCurrentVocabulary(vocabulary)
+  }, [vocabulary])
+
   useEffect(() => {
     if (!autoPlayEnabled) return undefined
 
-    const audioUrl = getAutoPlayAudioUrl(vocabulary, selectedAutoPlayPronunciation)
+    const audioUrl = getAutoPlayAudioUrl(currentVocabulary, selectedAutoPlayPronunciation)
     if (!audioUrl) return
 
     const timer = window.setTimeout(() => playAudio(audioUrl), 180)
     return () => window.clearTimeout(timer)
-  }, [autoPlayEnabled, playAudio, selectedAutoPlayPronunciation, vocabulary])
+  }, [autoPlayEnabled, currentVocabulary, playAudio, selectedAutoPlayPronunciation])
 
   useEffect(() => {
     previousActiveElement.current = document.activeElement as HTMLElement
@@ -159,6 +178,12 @@ export const VocabularyDetail = ({
               <path d="M6 6 18 18M18 6 6 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
             </svg>
           </button>
+          <FavoriteToggleButton
+            active={isFavourite}
+            className="detail-action-btn"
+            disabled={isTogglingFavorite}
+            onClick={handleToggleFavorite}
+          />
           <button className="detail-action-btn" onClick={handleToggleAll} title={allExpanded ? t('vocabulary.collapse_all') : t('vocabulary.expand_all')} type="button">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               {allExpanded ? (
@@ -174,7 +199,7 @@ export const VocabularyDetail = ({
           <div className="detail-hero">
             <div className="detail-hero__main">
               <p className="detail-eyebrow">{t('nav.edu_vocabularies')}</p>
-              <h1 className="detail-word">{htmlToText(vocabulary.name)}</h1>
+              <h1 className="detail-word">{htmlToText(currentVocabulary.name)}</h1>
               {pronunciations.length ? (
                 <div className="detail-pronunciation-list">
                   {pronunciations.map((item) => (
@@ -196,38 +221,38 @@ export const VocabularyDetail = ({
             </div>
             {imageUrl ? (
               <div className="detail-image-container">
-                <img src={imageUrl} alt={htmlToText(vocabulary.name)} />
+                <img src={imageUrl} alt={htmlToText(currentVocabulary.name)} />
               </div>
             ) : null}
           </div>
 
           {hasMeta ? (
             <div className="detail-meta-info detail-meta-info--row">
-              {vocabulary.partOfSpeech ? <span className="detail-meta-item">{vocabulary.partOfSpeech}</span> : null}
-              {vocabulary.term ? <span className="detail-meta-item">{t('vocabulary.term')} {vocabulary.term}</span> : null}
-              {vocabulary.week ? <span className="detail-meta-item">{t('vocabulary.week')} {vocabulary.week}</span> : null}
-              {vocabulary.difficultyLevel ? <span className="detail-difficulty" data-level={vocabulary.difficultyLevel.toLowerCase()}>{vocabulary.difficultyLevel}</span> : null}
+              {currentVocabulary.partOfSpeech ? <span className="detail-meta-item">{currentVocabulary.partOfSpeech}</span> : null}
+              {currentVocabulary.term ? <span className="detail-meta-item">{t('vocabulary.term')} {currentVocabulary.term}</span> : null}
+              {currentVocabulary.week ? <span className="detail-meta-item">{t('vocabulary.week')} {currentVocabulary.week}</span> : null}
+              {currentVocabulary.difficultyLevel ? <span className="detail-difficulty" data-level={currentVocabulary.difficultyLevel.toLowerCase()}>{currentVocabulary.difficultyLevel}</span> : null}
               {tags.map((tag) => <span key={tag} className="detail-tag">{tag}</span>)}
             </div>
           ) : null}
 
           <div className="detail-section-grid">
-            {renderHtmlSection('translation', t('vocabulary.translation'), vocabulary.translation)}
-            {vocabulary.synonyms?.trim() ? (
+            {renderHtmlSection('translation', t('vocabulary.translation'), currentVocabulary.translation)}
+            {currentVocabulary.synonyms?.trim() ? (
               <DetailSection section="synonyms" title={t('vocabulary.synonyms')} isOpen={toggleStates.synonyms} onToggle={() => toggleSection('synonyms')}>
                 <div className="detail-synonym-list">
-                  {vocabulary.synonyms.split(/[,;，；]/).map((synonym) => synonym.trim()).filter(Boolean).map((synonym) => (
+                  {currentVocabulary.synonyms.split(/[,;，；]/).map((synonym) => synonym.trim()).filter(Boolean).map((synonym) => (
                     <span className="detail-synonym" key={synonym}>{synonym}</span>
                   ))}
                 </div>
               </DetailSection>
             ) : null}
-            {renderHtmlSection('meaningClue', t('vocabulary.meaning_clue'), vocabulary.meaningClue)}
-            {renderHtmlSection('easyMeaning', t('vocabulary.easy_meaning'), vocabulary.easyMeaning)}
-            {renderHtmlSection('meaning', t('vocabulary.meaning'), vocabulary.meaning)}
-            {renderHtmlSection('sentenceOne', t('vocabulary.sentence_one'), vocabulary.sentenceOne)}
-            {renderHtmlSection('sentenceTwo', t('vocabulary.sentence_two'), vocabulary.sentenceTwo)}
-            {renderHtmlSection('additionalInfo', t('vocabulary.additional_info'), vocabulary.additionalInfo)}
+            {renderHtmlSection('meaningClue', t('vocabulary.meaning_clue'), currentVocabulary.meaningClue)}
+            {renderHtmlSection('easyMeaning', t('vocabulary.easy_meaning'), currentVocabulary.easyMeaning)}
+            {renderHtmlSection('meaning', t('vocabulary.meaning'), currentVocabulary.meaning)}
+            {renderHtmlSection('sentenceOne', t('vocabulary.sentence_one'), currentVocabulary.sentenceOne)}
+            {renderHtmlSection('sentenceTwo', t('vocabulary.sentence_two'), currentVocabulary.sentenceTwo)}
+            {renderHtmlSection('additionalInfo', t('vocabulary.additional_info'), currentVocabulary.additionalInfo)}
           </div>
 
           {dictionaryUrl ? (

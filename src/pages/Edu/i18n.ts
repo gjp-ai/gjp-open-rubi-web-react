@@ -28,6 +28,8 @@ export default {
   'edu.result_count': { EN: '{count} items', ZH: '{count} 条' },
   'edu.answer': { EN: 'Answer', ZH: '答案' },
   'edu.explanation': { EN: 'Explanation', ZH: '解释' },
+  'edu.add_favourite': { EN: 'Add favourite', ZH: '收藏' },
+  'edu.remove_favourite': { EN: 'Remove favourite', ZH: '取消收藏' },
   'question.grade': { EN: 'Grade', ZH: '年级' },
   'question.subject': { EN: 'Subject', ZH: '科目' },
   'question.topic': { EN: 'Topic', ZH: '主题' },
