@@ -6,7 +6,8 @@ import { useT } from '../../../shared/i18n'
 import { usePagedFetch } from '../../../shared/hooks/usePagedFetch'
 import { Pagination } from '../../../shared/ui/Pagination'
 import { EduPlayBar, type EduPlayField, type EduPlayOrder } from '../EduPlayBar'
-import { getEduLearningItems, type EduLearningKind } from '../eduApi'
+import { hasFavoriteTag } from '../favoriteUtils'
+import { getEduLearningItems, toggleEduLearningFavoriteTag, type EduLearningKind } from '../eduApi'
 import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { readEduPlaySettings, saveEduPlaySettings } from '../playSettings'
 import { SentenceCard } from './SentenceCard'
@@ -74,6 +75,7 @@ export const EduSentencesPage = () => {
   const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
   const [hiddenPlayFields, setHiddenPlayFields] = useState<string[]>(() => readEduPlaySettings(playSettingsKey).hiddenFields)
   const [playReplayToken, setPlayReplayToken] = useState(0)
+  const [isPlayFavoritePending, setIsPlayFavoritePending] = useState(false)
   const autoPlayTimerRef = useRef<number | null>(null)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const playQueueRef = useRef<number[]>([])
@@ -115,6 +117,7 @@ export const EduSentencesPage = () => {
     totalPages,
     pageSize,
     handlePageSizeChange,
+    updateItem,
     skeletonItems,
   } = usePagedFetch(fetcher, { initialPageSize: 60, skeletonCount: 12 })
 
@@ -395,6 +398,21 @@ export const EduSentencesPage = () => {
     { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
   ] : []
 
+  const handleFavoriteUpdated = useCallback((item: EduLearningItem) => {
+    updateItem(item)
+  }, [updateItem])
+
+  const handleCurrentPlayFavoriteToggle = useCallback(async () => {
+    if (!currentPlayItem) return
+    setIsPlayFavoritePending(true)
+    try {
+      const response = await toggleEduLearningFavoriteTag('sentences', currentPlayItem.id)
+      updateItem(response.data)
+    } finally {
+      setIsPlayFavoritePending(false)
+    }
+  }, [currentPlayItem, updateItem])
+
   return (
     <div className="page-container edu-page sentences-page">
       <section className="vocab-toolbar" aria-label={t('vocabulary.filters')}>
@@ -511,7 +529,7 @@ export const EduSentencesPage = () => {
       ) : (
         <div className="sentences-list">
           {displayItems.map((item, index) => (
-            <SentenceCard key={item.id} sentence={item} sentences={displayItems} currentIndex={index} />
+            <SentenceCard key={item.id} sentence={item} sentences={displayItems} currentIndex={index} onFavoriteUpdated={handleFavoriteUpdated} />
           ))}
         </div>
       )}
@@ -541,6 +559,8 @@ export const EduSentencesPage = () => {
           hiddenFieldKeys={hiddenPlayFields}
           startFullScreen
           progress={playProgress}
+          isFavourite={currentPlayItem ? hasFavoriteTag(currentPlayItem) : false}
+          isFavoriteTogglePending={isPlayFavoritePending}
           onStop={stopAutoPlay}
           onPrevious={handlePlayPrevious}
           onRepeat={handlePlayRepeat}
@@ -549,6 +569,7 @@ export const EduSentencesPage = () => {
           onHiddenFieldKeysChange={setHiddenPlayFields}
           onToggleFieldVisibility={handleToggleFieldVisibility}
           onProgressSeek={handlePlayProgressSeek}
+          onToggleFavorite={handleCurrentPlayFavoriteToggle}
           onIntervalChange={handlePlayIntervalChange}
           onOrderChange={handlePlayOrderChange}
         />

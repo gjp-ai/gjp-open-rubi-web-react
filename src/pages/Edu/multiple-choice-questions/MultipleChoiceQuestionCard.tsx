@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
-import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { FavoriteBadge, FavoriteToggleButton } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
 import { toggleEduQuestionFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
@@ -13,9 +14,11 @@ const options = ['A', 'B', 'C', 'D'] as const
 export const MultipleChoiceQuestionCard = ({
   question: initialQuestion,
   isExpandedView,
+  onFavoriteUpdated,
 }: {
   question: EduQuestion
   isExpandedView: boolean
+  onFavoriteUpdated?: (question: EduQuestion) => void
 }) => {
   const t = useT()
   const [question, setQuestion] = useState(initialQuestion)
@@ -119,10 +122,11 @@ export const MultipleChoiceQuestionCard = ({
     try {
       const response = await toggleEduQuestionFavoriteTag('multiple-choice-questions', question.id)
       setQuestion(response.data)
+      onFavoriteUpdated?.(response.data)
     } finally {
       setIsTogglingFavorite(false)
     }
-  }, [question.id])
+  }, [onFavoriteUpdated, question.id])
 
   return (
     <div
@@ -138,7 +142,10 @@ export const MultipleChoiceQuestionCard = ({
         aria-label={t('vocabulary.view_details')}
       >
         <div className="mcq-card-question-preview-container">
-          <div className="mcq-card-question-preview">{htmlToText(question.question).slice(0, 150)}</div>
+          <div className="mcq-card-question-preview">
+            {hasFavoriteTag(question) ? <FavoriteBadge className="edu-card-favourite" /> : null}
+            <span>{htmlToText(question.question).slice(0, 150)}</span>
+          </div>
           <div className="mcq-card-question-full" dangerouslySetInnerHTML={renderHtml(question.question)} />
         </div>
         <svg className={`expand-icon ${isExpanded ? 'rotated' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

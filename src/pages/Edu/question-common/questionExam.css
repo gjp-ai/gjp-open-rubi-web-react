@@ -27,6 +27,21 @@
 .question-exam__topbar h2 {
   margin: 0.1rem 0 0;
   font-size: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.question-exam__favorite-toggle {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+}
+
+.question-exam__favorite-toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 .question-exam__close,

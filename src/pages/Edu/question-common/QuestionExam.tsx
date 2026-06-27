@@ -3,7 +3,9 @@ import { createElement, useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
-import type { EduQuestionKind } from '../eduApi'
+import { FavoriteBadge, FavoriteToggleButton } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
+import { toggleEduQuestionFavoriteTag, type EduQuestionKind } from '../eduApi'
 import { htmlToText, renderHtml } from '../eduUtils'
 import './questionExam.css'
 
@@ -19,6 +21,7 @@ type ExamResult = {
 type QuestionExamProps = {
   kind: EduQuestionKind
   onClose: () => void
+  onFavoriteUpdated?: (question: EduQuestion) => void
   questions: EduQuestion[]
   title: string
 }
@@ -61,7 +64,7 @@ const getFreeTextParts = (question: EduQuestion) =>
     }))
     .filter((part) => htmlToText(part.question).length > 0 || htmlToText(part.answer).length > 0)
 
-export const QuestionExam = ({ kind, onClose, questions, title }: QuestionExamProps) => {
+export const QuestionExam = ({ kind, onClose, onFavoriteUpdated, questions, title }: QuestionExamProps) => {
   const t = useT()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedChoice, setSelectedChoice] = useState('')
@@ -71,6 +74,7 @@ export const QuestionExam = ({ kind, onClose, questions, title }: QuestionExamPr
   const [showExplanation, setShowExplanation] = useState(false)
   const [results, setResults] = useState<Record<string, ExamResult>>({})
   const [finished, setFinished] = useState(false)
+  const [isFavoritePending, setIsFavoritePending] = useState(false)
 
   const currentQuestion = questions[currentIndex]
   const currentResult = currentQuestion ? results[currentQuestion.id] : undefined
@@ -80,6 +84,7 @@ export const QuestionExam = ({ kind, onClose, questions, title }: QuestionExamPr
   const progressLabel = `${currentIndex + 1} / ${questions.length}`
   const isObjectiveChoice = kind === 'multiple-choice-questions' || kind === 'true-false-questions'
   const hasExplanation = Boolean(currentQuestion?.explanation)
+  const isFavourite = currentQuestion ? hasFavoriteTag(currentQuestion) : false
 
   const clearWorkingAnswer = useCallback(() => {
     setSelectedChoice('')
@@ -170,6 +175,17 @@ export const QuestionExam = ({ kind, onClose, questions, title }: QuestionExamPr
     goToQuestion(0)
   }, [goToQuestion])
 
+  const toggleFavorite = useCallback(async () => {
+    if (!currentQuestion) return
+    setIsFavoritePending(true)
+    try {
+      const response = await toggleEduQuestionFavoriteTag(kind, currentQuestion.id)
+      onFavoriteUpdated?.(response.data)
+    } finally {
+      setIsFavoritePending(false)
+    }
+  }, [currentQuestion, kind, onFavoriteUpdated])
+
   useEffect(() => {
     const isTypingTarget = (target: EventTarget | null) => {
       const element = target as HTMLElement | null
@@ -244,8 +260,19 @@ export const QuestionExam = ({ kind, onClose, questions, title }: QuestionExamPr
       <div className="question-exam__topbar">
         <div>
           <div className="question-exam__eyebrow">{title}</div>
-          <h2>{finished ? 'Score' : progressLabel}</h2>
+          <h2>
+            {finished ? 'Score' : progressLabel}
+            {!finished && isFavourite ? <FavoriteBadge className="question-exam__favorite-badge" /> : null}
+          </h2>
         </div>
+        {!finished ? (
+          <FavoriteToggleButton
+            active={isFavourite}
+            className="question-exam__favorite-toggle"
+            disabled={isFavoritePending}
+            onClick={toggleFavorite}
+          />
+        ) : null}
         <button type="button" className="question-exam__close" onClick={onClose} aria-label={`${t('vocabulary.close')} (Esc)`} title="Esc">x</button>
       </div>
 

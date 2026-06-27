@@ -81,7 +81,7 @@ export const EduFreeTextQuestionsPage = () => {
     [kind, backendSearchQuery, backendTag, backendFilters],
   )
 
-  const { items, loading, error, currentPage, setCurrentPage, totalElements, totalPages, pageSize, handlePageSizeChange, skeletonItems } =
+  const { items, loading, error, currentPage, setCurrentPage, totalElements, totalPages, pageSize, handlePageSizeChange, updateItem, skeletonItems } =
     usePagedFetch(fetcher, { initialPageSize: 40, skeletonCount: 8 })
 
   const displayItems = useMemo(() => {
@@ -404,7 +404,7 @@ export const EduFreeTextQuestionsPage = () => {
       ) : (
         <div className="ftq-grid">
           {displayItems.map((question) => (
-            <FreeTextQuestionCard key={question.id} question={question} isExpandedView={isExpandedView} />
+            <FreeTextQuestionCard key={question.id} question={question} isExpandedView={isExpandedView} onFavoriteUpdated={updateItem} />
           ))}
         </div>
       )}
@@ -451,6 +451,7 @@ export const EduFreeTextQuestionsPage = () => {
           kind={kind}
           questions={displayItems}
           title={pageLabel}
+          onFavoriteUpdated={updateItem}
           onClose={() => setShowExam(false)}
         />
       ) : null}

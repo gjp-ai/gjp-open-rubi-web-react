@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { EduLearningItem } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
+import { FavoriteBadge } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { SentenceDetail } from './SentenceDetail'
 
@@ -11,7 +13,17 @@ const getPronunciations = (item: EduLearningItem) => {
   ].filter((row) => row.value)
 }
 
-export const SentenceCard = ({ sentence, sentences, currentIndex }: { sentence: EduLearningItem; sentences: EduLearningItem[]; currentIndex: number }) => {
+export const SentenceCard = ({
+  sentence,
+  sentences,
+  currentIndex,
+  onFavoriteUpdated,
+}: {
+  sentence: EduLearningItem
+  sentences: EduLearningItem[]
+  currentIndex: number
+  onFavoriteUpdated?: (item: EduLearningItem) => void
+}) => {
   const t = useT()
   const [showDetail, setShowDetail] = useState(false)
   const [activeIndex, setActiveIndex] = useState(currentIndex)
@@ -57,7 +69,10 @@ export const SentenceCard = ({ sentence, sentences, currentIndex }: { sentence: 
         aria-label={`${t('vocabulary.view_details')} ${htmlToText(sentence.name)}`}
       >
         <div className="sentence-card-body">
-          <div className="sentence-card-sentence" dangerouslySetInnerHTML={renderHtml(sentence.name)} />
+          <div className="sentence-card-sentence">
+            <span dangerouslySetInnerHTML={renderHtml(sentence.name)} />
+            {hasFavoriteTag(sentence) ? <FavoriteBadge className="edu-card-favourite" /> : null}
+          </div>
           {pronunciations.length ? (
             <div className="sentence-card-phonetics">
               {pronunciations.map((item) => (
@@ -86,6 +101,7 @@ export const SentenceCard = ({ sentence, sentences, currentIndex }: { sentence: 
           onNext={() => setActiveIndex((index) => Math.min(sentences.length - 1, index + 1))}
           hasPrevious={activeIndex > 0}
           hasNext={activeIndex < sentences.length - 1}
+          onFavoriteUpdated={onFavoriteUpdated}
         />
       ) : null}
     </>

@@ -755,6 +755,52 @@ img {
   height: 18px;
 }
 
+.favourite-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #d97706;
+  background: color-mix(in srgb, #f59e0b 16%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, #f59e0b 54%, var(--color-border));
+  flex: 0 0 auto;
+}
+
+.favourite-badge svg {
+  width: 15px;
+  height: 15px;
+}
+
+.edu-card-favourite {
+  margin-left: 0.45rem;
+}
+
+.mcq-card-question-preview,
+.fbq-card-question-preview,
+.ftq-card-question-preview,
+.tfq-card-question-preview,
+.sentence-card-sentence,
+.vocab-card-word,
+.phrase-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.vocab-card-word,
+.phrase-card h2 {
+  justify-content: center;
+}
+
+.mcq-card-question-preview,
+.fbq-card-question-preview,
+.ftq-card-question-preview,
+.tfq-card-question-preview {
+  display: inline-flex;
+}
+
 .favourite-toggle-btn.active {
   border-color: color-mix(in srgb, #f59e0b 72%, var(--color-border));
   background: color-mix(in srgb, #f59e0b 18%, var(--color-surface));

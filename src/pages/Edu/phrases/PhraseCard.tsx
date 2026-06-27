@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { EduLearningItem } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
+import { FavoriteBadge } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { PhraseDetail } from './PhraseDetail'
 
@@ -18,11 +20,13 @@ export const PhraseCard = ({
   phrases,
   currentIndex,
   expanded,
+  onFavoriteUpdated,
 }: {
   phrase: EduLearningItem
   phrases: EduLearningItem[]
   currentIndex: number
   expanded: boolean
+  onFavoriteUpdated?: (item: EduLearningItem) => void
 }) => {
   const t = useT()
   const [showDetail, setShowDetail] = useState(false)
@@ -67,7 +71,10 @@ export const PhraseCard = ({
         tabIndex={0}
         aria-label={`${t('vocabulary.view_details')} ${htmlToText(phrase.name)}`}
       >
-        <h2 dangerouslySetInnerHTML={renderHtml(phrase.name)} />
+        <h2>
+          <span dangerouslySetInnerHTML={renderHtml(phrase.name)} />
+          {hasFavoriteTag(phrase) ? <FavoriteBadge className="edu-card-favourite" /> : null}
+        </h2>
         {expanded && pronunciations.length ? (
           <div className="phrase-card__phonetics">
             {pronunciations.map((item) => (
@@ -96,6 +103,7 @@ export const PhraseCard = ({
           onNext={() => setActiveIndex((index) => Math.min(phrases.length - 1, index + 1))}
           hasPrevious={activeIndex > 0}
           hasNext={activeIndex < phrases.length - 1}
+          onFavoriteUpdated={onFavoriteUpdated}
         />
       ) : null}
     </>

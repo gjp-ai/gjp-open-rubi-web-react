@@ -2,7 +2,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useT } from '../../../shared/i18n'
 import { getSafeUrl } from '../../../shared/security/safeUrl'
-import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { FavoriteToggleButton } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
 import { toggleEduLearningFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml, splitTags } from '../eduUtils'
 import type { PronunciationVariant, VocabularyItem } from './types'
@@ -62,9 +63,11 @@ export const VocabularyDetail = ({
   hasPrevious = false,
   hasNext = false,
   autoPlayPronunciation = 'us',
+  onFavoriteUpdated,
 }: {
   vocabulary: VocabularyItem
   onClose: () => void
+  onFavoriteUpdated?: (item: VocabularyItem) => void
   onPrevious?: () => void
   onNext?: () => void
   hasPrevious?: boolean
@@ -109,10 +112,11 @@ export const VocabularyDetail = ({
     try {
       const response = await toggleEduLearningFavoriteTag('vocabularies', currentVocabulary.id)
       setCurrentVocabulary(response.data)
+      onFavoriteUpdated?.(response.data)
     } finally {
       setIsTogglingFavorite(false)
     }
-  }, [currentVocabulary.id])
+  }, [currentVocabulary.id, onFavoriteUpdated])
 
   useEffect(() => {
     setCurrentVocabulary(vocabulary)

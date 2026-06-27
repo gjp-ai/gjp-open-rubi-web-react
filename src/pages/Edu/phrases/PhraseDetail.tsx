@@ -2,7 +2,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import type { EduLearningItem } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
-import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { FavoriteToggleButton } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
 import { toggleEduLearningFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml, splitTags } from '../eduUtils'
 
@@ -40,6 +41,7 @@ export const PhraseDetail = ({
   onNext,
   hasPrevious,
   hasNext,
+  onFavoriteUpdated,
 }: {
   phrase: EduLearningItem
   onClose: () => void
@@ -47,6 +49,7 @@ export const PhraseDetail = ({
   onNext: () => void
   hasPrevious: boolean
   hasNext: boolean
+  onFavoriteUpdated?: (item: EduLearningItem) => void
 }) => {
   const t = useT()
   const [currentPhrase, setCurrentPhrase] = useState(phrase)
@@ -74,10 +77,11 @@ export const PhraseDetail = ({
     try {
       const response = await toggleEduLearningFavoriteTag('phrases', currentPhrase.id)
       setCurrentPhrase(response.data)
+      onFavoriteUpdated?.(response.data)
     } finally {
       setIsTogglingFavorite(false)
     }
-  }, [currentPhrase.id])
+  }, [currentPhrase.id, onFavoriteUpdated])
 
   useEffect(() => {
     setCurrentPhrase(phrase)

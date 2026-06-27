@@ -119,6 +119,9 @@
 .edu-play-bar__now strong {
   font-size: 14px;
   line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .edu-play-bar__now span {
@@ -318,6 +321,9 @@
 .edu-play-fullscreen__top strong {
   color: var(--color-primary);
   font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .edu-play-fullscreen__actions {
@@ -638,6 +644,17 @@
   border-radius: 10px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   text-align: center;
+}
+
+.edu-play-bar__favorite-badge,
+.edu-play-fullscreen__favorite-badge,
+.edu-play-fullscreen__stage-favorite {
+  vertical-align: middle;
+}
+
+.edu-play-fullscreen__favorite-toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 .edu-play-fullscreen__meta {

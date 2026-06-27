@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../../../shared/i18n'
+import { FavoriteBadge } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
 import { htmlToText } from '../eduUtils'
 import { VocabularyDetail } from './VocabularyDetail'
 import type { PronunciationVariant, VocabularyItem } from './types'
@@ -10,12 +12,14 @@ export const VocabularyCard = ({
   allVocabularies = [],
   currentIndex = 0,
   autoPlayPronunciation = 'us',
+  onFavoriteUpdated,
 }: {
   vocabulary: VocabularyItem
   isExpandedView?: boolean
   allVocabularies?: VocabularyItem[]
   currentIndex?: number
   autoPlayPronunciation?: PronunciationVariant
+  onFavoriteUpdated?: (item: VocabularyItem) => void
 }) => {
   const t = useT()
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -68,7 +72,10 @@ export const VocabularyCard = ({
         tabIndex={0}
         aria-label={`${t('vocabulary.view_details')} ${htmlToText(vocabulary.name)}`}
       >
-        <h3 className="vocab-card-word">{htmlToText(vocabulary.name)}</h3>
+        <h3 className="vocab-card-word">
+          {htmlToText(vocabulary.name)}
+          {hasFavoriteTag(vocabulary) ? <FavoriteBadge className="edu-card-favourite" /> : null}
+        </h3>
         {isExpandedView && pronunciationRows.length ? (
           <div className="vocab-card-phonetics">
             {pronunciationRows.map((item) => (
@@ -99,6 +106,7 @@ export const VocabularyCard = ({
           hasPrevious={activeVocabIndex > 0}
           hasNext={activeVocabIndex < allVocabularies.length - 1}
           autoPlayPronunciation={autoPlayPronunciation}
+          onFavoriteUpdated={onFavoriteUpdated}
         />
       ) : null}
     </>

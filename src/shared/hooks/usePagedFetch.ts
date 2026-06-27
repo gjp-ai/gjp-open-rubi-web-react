@@ -20,6 +20,7 @@ interface UsePagedFetchResult<TItem> {
   totalPages: number
   pageSize: number
   setPageSize: (size: number) => void
+  updateItem: (item: TItem, getId?: (item: TItem) => string) => void
   skeletonItems: number[]
   handlePageSizeChange: (newPageSize: number) => void
 }
@@ -104,6 +105,11 @@ export function usePagedFetch<TItem>(
     setCurrentPage(1)
   }, [])
 
+  const updateItem = useCallback((item: TItem, getId: (item: TItem) => string = (value) => (value as { id: string }).id) => {
+    const itemId = getId(item)
+    setItems((current) => current.map((currentItem) => (getId(currentItem) === itemId ? item : currentItem)))
+  }, [])
+
   const skeletonItems = useMemo(() => Array.from({ length: skeletonCount }, (_, index) => index), [skeletonCount])
 
   return {
@@ -116,6 +122,7 @@ export function usePagedFetch<TItem>(
     totalPages,
     pageSize,
     setPageSize,
+    updateItem,
     skeletonItems,
     handlePageSizeChange,
   }

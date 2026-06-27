@@ -1,14 +1,6 @@
 import type { MouseEvent } from 'react'
-import type { EduLearningItem, EduQuestion } from '../../shared/data/types'
 import { useT } from '../../shared/i18n'
-import { splitTags } from './eduUtils'
-
-type FavoriteItem = Pick<EduLearningItem | EduQuestion, 'lang' | 'tags'>
-
-export const getFavoriteTag = (lang: FavoriteItem['lang']) => (lang === 'ZH' ? '收藏' : 'Favourite')
-
-export const hasFavoriteTag = (item: FavoriteItem) =>
-  splitTags(item.tags).some((tag) => tag.toLowerCase() === getFavoriteTag(item.lang).toLowerCase())
+import { getFavoriteTag } from './favoriteUtils'
 
 export const FavoriteIcon = ({ filled }: { filled: boolean }) => (
   <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} aria-hidden="true">
@@ -19,6 +11,12 @@ export const FavoriteIcon = ({ filled }: { filled: boolean }) => (
       strokeLinejoin="round"
     />
   </svg>
+)
+
+export const FavoriteBadge = ({ className = '' }: { className?: string }) => (
+  <span className={`${className} favourite-badge`.trim()} aria-label={getFavoriteTag('EN')} title={getFavoriteTag('EN')}>
+    <FavoriteIcon filled />
+  </span>
 )
 
 export const FavoriteToggleButton = ({

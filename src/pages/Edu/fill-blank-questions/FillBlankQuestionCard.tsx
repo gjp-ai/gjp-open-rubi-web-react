@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import type { EduQuestion } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
-import { FavoriteToggleButton, hasFavoriteTag } from '../FavoriteToggleButton'
+import { FavoriteBadge, FavoriteToggleButton } from '../FavoriteToggleButton'
+import { hasFavoriteTag } from '../favoriteUtils'
 import { toggleEduQuestionFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml } from '../eduUtils'
 import { AnswerIcon, ExplanationIcon, QuestionToolButton, QuestionTools } from '../question-common/QuestionCardTools'
 import '../question-common/questionCardTools.css'
 
-export const FillBlankQuestionCard = ({ question: initialQuestion, isExpandedView }: { question: EduQuestion; isExpandedView: boolean }) => {
+export const FillBlankQuestionCard = ({
+  question: initialQuestion,
+  isExpandedView,
+  onFavoriteUpdated,
+}: {
+  question: EduQuestion
+  isExpandedView: boolean
+  onFavoriteUpdated?: (question: EduQuestion) => void
+}) => {
   const t = useT()
   const [question, setQuestion] = useState(initialQuestion)
   const [isExpanded, setIsExpanded] = useState(isExpandedView)
@@ -76,14 +85,14 @@ export const FillBlankQuestionCard = ({ question: initialQuestion, isExpandedVie
     )
   }
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setUserAnswers(new Array(blankCount).fill(''))
     setIsAnswered(false)
     setIsCorrect(null)
     setShowAnswer(false)
     setShowExplanation(false)
     setTimeout(() => inputRefs.current[0]?.focus(), 0)
-  }
+  }, [blankCount])
 
   const handleCardClick = useCallback(() => {
     if (!isExpanded) {
@@ -99,7 +108,7 @@ export const FillBlankQuestionCard = ({ question: initialQuestion, isExpandedVie
         reset()
       }
     },
-    [isExpanded, blankCount]
+    [isExpanded, reset]
   )
 
   const handleToggleFavorite = useCallback(async () => {
@@ -107,10 +116,11 @@ export const FillBlankQuestionCard = ({ question: initialQuestion, isExpandedVie
     try {
       const response = await toggleEduQuestionFavoriteTag('fill-blank-questions', question.id)
       setQuestion(response.data)
+      onFavoriteUpdated?.(response.data)
     } finally {
       setIsTogglingFavorite(false)
     }
-  }, [question.id])
+  }, [onFavoriteUpdated, question.id])
 
   return (
     <div
@@ -125,7 +135,10 @@ export const FillBlankQuestionCard = ({ question: initialQuestion, isExpandedVie
         aria-expanded={isExpanded}
         aria-label={t('vocabulary.view_details')}
       >
-        <div className="fbq-card-question-preview">{htmlToText(question.question).slice(0, 180)}</div>
+        <div className="fbq-card-question-preview">
+          {hasFavoriteTag(question) ? <FavoriteBadge className="edu-card-favourite" /> : null}
+          <span>{htmlToText(question.question).slice(0, 180)}</span>
+        </div>
         <svg className={`expand-icon ${isExpanded ? 'rotated' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 9l-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>

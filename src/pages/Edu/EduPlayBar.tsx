@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react'
 import { useT } from '../../shared/i18n'
+import { FavoriteBadge, FavoriteToggleButton } from './FavoriteToggleButton'
 import { renderHtml } from './eduUtils'
 import './eduPlayBar.css'
 
@@ -31,6 +32,8 @@ interface EduPlayBarProps {
   hiddenFieldKeys?: string[]
   startFullScreen?: boolean
   progress?: number
+  isFavourite?: boolean
+  isFavoriteTogglePending?: boolean
   onStop: () => void
   onPrevious?: () => void
   onRepeat?: () => void
@@ -39,6 +42,7 @@ interface EduPlayBarProps {
   onHiddenFieldKeysChange?: (fieldKeys: string[]) => void
   onToggleFieldVisibility?: (fieldKey: string) => void
   onProgressSeek?: (progress: number) => void
+  onToggleFavorite?: () => void
   onIntervalChange: (interval: number) => void
   onOrderChange: (order: EduPlayOrder) => void
   onPronunciationChange?: (pronunciation: EduPlayPronunciation) => void
@@ -62,6 +66,8 @@ export const EduPlayBar = ({
   hiddenFieldKeys = [],
   startFullScreen = false,
   progress,
+  isFavourite = false,
+  isFavoriteTogglePending = false,
   onStop,
   onPrevious,
   onRepeat,
@@ -70,6 +76,7 @@ export const EduPlayBar = ({
   onHiddenFieldKeysChange,
   onToggleFieldVisibility,
   onProgressSeek,
+  onToggleFavorite,
   onIntervalChange,
   onOrderChange,
   onPronunciationChange,
@@ -206,9 +213,18 @@ export const EduPlayBar = ({
               <span>{t('vocabulary.play_all')}</span>
               <strong>
                 {safeCurrent}/{safeTotal}
+                {isFavourite ? <FavoriteBadge className="edu-play-fullscreen__favorite-badge" /> : null}
               </strong>
             </div>
             <div className="edu-play-fullscreen__actions">
+              {onToggleFavorite ? (
+                <FavoriteToggleButton
+                  active={isFavourite}
+                  className="edu-play-bar__control edu-play-fullscreen__favorite-toggle"
+                  disabled={isFavoriteTogglePending}
+                  onClick={onToggleFavorite}
+                />
+              ) : null}
               {onToggleFieldVisibility ? (
                 <div className="edu-play-fullscreen__field-menu">
                   <button className={`edu-play-bar__control${showFieldSettings ? ' active' : ''}`} onClick={() => setShowFieldSettings((value) => !value)} type="button" aria-label={t('vocabulary.field_visibility')} title={t('vocabulary.field_visibility')} aria-expanded={showFieldSettings}>
@@ -288,6 +304,7 @@ export const EduPlayBar = ({
               <div className="edu-play-fullscreen__hero">
                 {currentMeta && isFieldVisible('meta') ? <span className="edu-play-fullscreen__meta">{currentMeta}</span> : null}
                 {showHeroTitle ? <h2 dangerouslySetInnerHTML={renderHtml(currentTitle)} /> : null}
+                {isFavourite ? <FavoriteBadge className="edu-play-fullscreen__stage-favorite" /> : null}
                 {currentSubtitle && isFieldVisible('subtitle') ? <p className="edu-play-fullscreen__subtitle">{currentSubtitle}</p> : null}
                 {visibleHeroFields.length > 0 ? (
                   <div className="edu-play-fullscreen__hero-fields">
@@ -370,7 +387,10 @@ export const EduPlayBar = ({
         </div>
 
         <div className="edu-play-bar__now">
-          <strong>{currentTitle}</strong>
+          <strong>
+            {currentTitle}
+            {isFavourite ? <FavoriteBadge className="edu-play-bar__favorite-badge" /> : null}
+          </strong>
           {currentSubtitle ? <span>{currentSubtitle}</span> : null}
         </div>
 
