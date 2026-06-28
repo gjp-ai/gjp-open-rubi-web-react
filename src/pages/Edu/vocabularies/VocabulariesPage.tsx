@@ -33,10 +33,16 @@ const formatPhonetics = (item?: VocabularyItem) => {
   return values.length > 0 ? values.join(' · ') : item.phonetic ? `/${htmlToText(item.phonetic)}/` : ''
 }
 
-const getPronunciationItems = (vocabulary: VocabularyItem): Array<{ label: string; value: string; audioUrl?: string | null }> => {
+const getPronunciationItems = (
+  vocabulary: VocabularyItem,
+): Array<{ label: string; value: string; audioUrl?: string | null }> => {
   const pronunciations: Array<{ label: string; value: string; audioUrl?: string | null }> = []
   if (vocabulary.phoneticUs) {
-    pronunciations.push({ label: 'US', value: vocabulary.phoneticUs, audioUrl: vocabulary.phoneticUsAudioUrl || vocabulary.phoneticAudioUrl })
+    pronunciations.push({
+      label: 'US',
+      value: vocabulary.phoneticUs,
+      audioUrl: vocabulary.phoneticUsAudioUrl || vocabulary.phoneticAudioUrl,
+    })
   }
   if (vocabulary.phoneticUk) {
     pronunciations.push({ label: 'UK', value: vocabulary.phoneticUk, audioUrl: vocabulary.phoneticUkAudioUrl })
@@ -48,9 +54,16 @@ const getPronunciationItems = (vocabulary: VocabularyItem): Array<{ label: strin
 const matches = (item: VocabularyItem, query: string) => {
   if (!query) return true
   const text = query.toLowerCase()
-  return [item.name, item.translation, item.meaning, item.easyMeaning, item.definition, item.example, item.synonyms, item.tags].some((field) =>
-    htmlToText(field).toLowerCase().includes(text),
-  )
+  return [
+    item.name,
+    item.translation,
+    item.meaning,
+    item.easyMeaning,
+    item.definition,
+    item.example,
+    item.synonyms,
+    item.tags,
+  ].some((field) => htmlToText(field).toLowerCase().includes(text))
 }
 
 const shuffleArray = (array: number[]) => {
@@ -80,15 +93,19 @@ export const EduVocabulariesPage = () => {
   const [difficultyLevel, setDifficultyLevel] = useState('')
   const [draftDifficultyLevel, setDraftDifficultyLevel] = useState('')
   const [isExpandedView, setIsExpandedView] = useState(true)
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(true)
   const [showSortMenu, setShowSortMenu] = useState(false)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [isPlayPaused, setIsPlayPaused] = useState(false)
   const [currentPlayIndex, setCurrentPlayIndex] = useState(0)
   const [playInterval, setPlayInterval] = useState(() => readEduPlaySettings(playSettingsKey).interval)
   const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
-  const [playPronunciation, setPlayPronunciation] = useState<EduPlayPronunciation>(() => readEduPlaySettings(playSettingsKey).pronunciation)
-  const [hiddenPlayFields, setHiddenPlayFields] = useState<string[]>(() => readEduPlaySettings(playSettingsKey).hiddenFields)
+  const [playPronunciation, setPlayPronunciation] = useState<EduPlayPronunciation>(
+    () => readEduPlaySettings(playSettingsKey).pronunciation,
+  )
+  const [hiddenPlayFields, setHiddenPlayFields] = useState<string[]>(
+    () => readEduPlaySettings(playSettingsKey).hiddenFields,
+  )
   const [audioProgress, setAudioProgress] = useState(0)
   const [playReplayToken, setPlayReplayToken] = useState(0)
   const [isPlayFavoritePending, setIsPlayFavoritePending] = useState(false)
@@ -146,9 +163,18 @@ export const EduVocabulariesPage = () => {
       const matchesTags = hasSelectedTags(item.tags, selectedTags)
       const matchesTerm = !draftTerm || String(item.term ?? '') === draftTerm
       const matchesWeek = !draftWeek || String(item.week ?? '') === draftWeek
-      const matchesPartOfSpeech = !draftPartOfSpeech || htmlToText(item.partOfSpeech).toLowerCase() === draftPartOfSpeech.toLowerCase()
+      const matchesPartOfSpeech =
+        !draftPartOfSpeech || htmlToText(item.partOfSpeech).toLowerCase() === draftPartOfSpeech.toLowerCase()
       const matchesDifficulty = !draftDifficultyLevel || item.difficultyLevel === draftDifficultyLevel
-      return item.lang === language && matches(item, query) && matchesTags && matchesTerm && matchesWeek && matchesPartOfSpeech && matchesDifficulty
+      return (
+        item.lang === language &&
+        matches(item, query) &&
+        matchesTags &&
+        matchesTerm &&
+        matchesWeek &&
+        matchesPartOfSpeech &&
+        matchesDifficulty
+      )
     })
 
     const sorted = [...filtered].sort((a, b) => {
@@ -163,7 +189,18 @@ export const EduVocabulariesPage = () => {
     })
 
     return direction === 'desc' ? sorted.reverse() : sorted
-  }, [direction, draftDifficultyLevel, draftPartOfSpeech, draftSearchQuery, draftTerm, draftWeek, items, language, selectedTags, sortOrder])
+  }, [
+    direction,
+    draftDifficultyLevel,
+    draftPartOfSpeech,
+    draftSearchQuery,
+    draftTerm,
+    draftWeek,
+    items,
+    language,
+    selectedTags,
+    sortOrder,
+  ])
 
   const applyFilters = (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
@@ -199,7 +236,10 @@ export const EduVocabulariesPage = () => {
   }
 
   const startAutoPlay = () => {
-    playQueueRef.current = playOrder === 'random' ? shuffleArray(displayItems.map((_, index) => index)) : displayItems.map((_, index) => index)
+    playQueueRef.current =
+      playOrder === 'random'
+        ? shuffleArray(displayItems.map((_, index) => index))
+        : displayItems.map((_, index) => index)
     setCurrentPlayIndex(0)
     autoPlayDeadlineRef.current = 0
     autoPlayRemainingRef.current = 0
@@ -238,17 +278,31 @@ export const EduVocabulariesPage = () => {
   useEffect(() => {
     const isTypingTarget = (target: EventTarget | null) => {
       const element = target as HTMLElement | null
-      return element?.tagName === 'INPUT' || element?.tagName === 'TEXTAREA' || element?.tagName === 'SELECT' || element?.isContentEditable
+      return (
+        element?.tagName === 'INPUT' ||
+        element?.tagName === 'TEXTAREA' ||
+        element?.tagName === 'SELECT' ||
+        element?.isContentEditable
+      )
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.key.toLowerCase() !== 'p' || isTypingTarget(event.target) || displayItems.length === 0) return
+      if (
+        event.defaultPrevented ||
+        event.key.toLowerCase() !== 'p' ||
+        isTypingTarget(event.target) ||
+        displayItems.length === 0
+      )
+        return
       event.preventDefault()
       if (isAutoPlaying) {
         stopAutoPlay()
         return
       }
-      playQueueRef.current = playOrder === 'random' ? shuffleArray(displayItems.map((_, index) => index)) : displayItems.map((_, index) => index)
+      playQueueRef.current =
+        playOrder === 'random'
+          ? shuffleArray(displayItems.map((_, index) => index))
+          : displayItems.map((_, index) => index)
       setCurrentPlayIndex(0)
       setIsPlayPaused(false)
       setIsAutoPlaying(true)
@@ -271,7 +325,9 @@ export const EduVocabulariesPage = () => {
   }
 
   const handleToggleFieldVisibility = (fieldKey: string) => {
-    setHiddenPlayFields((current) => (current.includes(fieldKey) ? current.filter((key) => key !== fieldKey) : [...current, fieldKey]))
+    setHiddenPlayFields((current) =>
+      current.includes(fieldKey) ? current.filter((key) => key !== fieldKey) : [...current, fieldKey],
+    )
   }
 
   const handleAudioProgressSeek = (nextProgress: number) => {
@@ -367,7 +423,12 @@ export const EduVocabulariesPage = () => {
   useEffect(() => {
     playIntervalRef.current = playInterval
     playPronunciationRef.current = playPronunciation
-    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: playPronunciation, hiddenFields: hiddenPlayFields })
+    saveEduPlaySettings(playSettingsKey, {
+      interval: playInterval,
+      order: playOrder,
+      pronunciation: playPronunciation,
+      hiddenFields: hiddenPlayFields,
+    })
   }, [hiddenPlayFields, playInterval, playOrder, playPronunciation])
 
   useEffect(() => {
@@ -423,28 +484,37 @@ export const EduVocabulariesPage = () => {
   const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL']
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
   const currentPlaySubtitle = formatPhonetics(currentPlayItem)
-  const currentPlayDescription = currentPlayItem ? currentPlayItem.definition || currentPlayItem.example || currentPlayItem.synonyms || '' : ''
-  const currentPlayHeroFields: EduPlayField[] = currentPlayItem ? [
-    { key: 'subtitle', label: t('vocabulary.phonetic'), value: currentPlaySubtitle },
-    { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
-    { key: 'partOfSpeech', label: t('vocabulary.part_of_speech'), value: currentPlayItem.partOfSpeech },
-    { key: 'difficultyLevel', label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
-    { key: 'tags', label: 'Tags', value: currentPlayItem.tags },
-  ] : []
-  const currentPlayFields: EduPlayField[] = currentPlayItem ? [
-    { key: 'synonyms', label: t('vocabulary.synonyms'), value: currentPlayItem.synonyms },
-    { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
-    { key: 'easyMeaning', label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
-    { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
-    { key: 'sentenceOne', label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
-    { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
-    { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
-    { key: 'dictionaryUrl', label: t('vocabulary.view_dictionary'), value: currentPlayItem.dictionaryUrl },
-  ] : []
+  const currentPlayDescription = currentPlayItem
+    ? currentPlayItem.definition || currentPlayItem.example || currentPlayItem.synonyms || ''
+    : ''
+  const currentPlayHeroFields: EduPlayField[] = currentPlayItem
+    ? [
+        { key: 'subtitle', label: t('vocabulary.phonetic'), value: currentPlaySubtitle },
+        { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
+        { key: 'partOfSpeech', label: t('vocabulary.part_of_speech'), value: currentPlayItem.partOfSpeech },
+        { key: 'difficultyLevel', label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
+        { key: 'tags', label: 'Tags', value: currentPlayItem.tags },
+      ]
+    : []
+  const currentPlayFields: EduPlayField[] = currentPlayItem
+    ? [
+        { key: 'synonyms', label: t('vocabulary.synonyms'), value: currentPlayItem.synonyms },
+        { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
+        { key: 'easyMeaning', label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
+        { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
+        { key: 'sentenceOne', label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
+        { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
+        { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
+        { key: 'dictionaryUrl', label: t('vocabulary.view_dictionary'), value: currentPlayItem.dictionaryUrl },
+      ]
+    : []
 
-  const handleFavoriteUpdated = useCallback((item: VocabularyItem) => {
-    updateItem(item)
-  }, [updateItem])
+  const handleFavoriteUpdated = useCallback(
+    (item: VocabularyItem) => {
+      updateItem(item)
+    },
+    [updateItem],
+  )
 
   const handleCurrentPlayFavoriteToggle = useCallback(async () => {
     if (!currentPlayItem) return
@@ -465,152 +535,232 @@ export const EduVocabulariesPage = () => {
     audio.play().catch((error) => console.error('Audio playback failed:', error))
   }, [])
 
-  const currentPlayFullScreenContent = currentPlayItem ? (() => {
-    const pronunciations = getPronunciationItems(currentPlayItem)
-    const tags = splitTags(currentPlayItem.tags)
-    const hasMeta = tags.length > 0 || currentPlayItem.term || currentPlayItem.week || currentPlayItem.difficultyLevel || currentPlayItem.partOfSpeech
-    const imageUrl = getSafeUrl(currentPlayItem.imageUrl)
-    const dictionaryUrl = getSafeUrl(currentPlayItem.dictionaryUrl)
-    const dictionarySections = [
-      { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
-      { key: 'synonyms', label: t('vocabulary.synonyms'), value: currentPlayItem.synonyms },
-      { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
-      { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
-      { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
-      { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
-    ].filter((field) => field.value !== undefined && field.value !== null && String(field.value).trim() !== '' && !hiddenPlayFields.includes(field.key))
-    const hasVisibleTitle = !hiddenPlayFields.includes('title')
-    const hasVisiblePronunciation = pronunciations.length > 0 && !hiddenPlayFields.includes('subtitle')
-    const hasVisibleEasyMeaning = Boolean(currentPlayItem.easyMeaning?.trim()) && !hiddenPlayFields.includes('easyMeaning')
-    const hasVisibleSentenceOne = Boolean(currentPlayItem.sentenceOne?.trim()) && !hiddenPlayFields.includes('sentenceOne')
-    const hasVisibleMeta = hasMeta && !hiddenPlayFields.includes('meta')
-    const hasVisibleImage = Boolean(imageUrl) && !hiddenPlayFields.includes('imageUrl')
-    const hasVisibleDictionary = Boolean(dictionaryUrl) && !hiddenPlayFields.includes('dictionaryUrl')
-    const hasVisibleCustomField =
-      hasVisibleTitle ||
-      hasVisiblePronunciation ||
-      hasVisibleEasyMeaning ||
-      hasVisibleSentenceOne ||
-      hasVisibleMeta ||
-      dictionarySections.length > 0 ||
-      hasVisibleImage ||
-      hasVisibleDictionary
+  const currentPlayFullScreenContent = currentPlayItem
+    ? (() => {
+        const pronunciations = getPronunciationItems(currentPlayItem)
+        const tags = splitTags(currentPlayItem.tags)
+        const hasMeta =
+          tags.length > 0 ||
+          currentPlayItem.term ||
+          currentPlayItem.week ||
+          currentPlayItem.difficultyLevel ||
+          currentPlayItem.partOfSpeech
+        const imageUrl = getSafeUrl(currentPlayItem.imageUrl)
+        const dictionaryUrl = getSafeUrl(currentPlayItem.dictionaryUrl)
+        const dictionarySections = [
+          { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
+          { key: 'synonyms', label: t('vocabulary.synonyms'), value: currentPlayItem.synonyms },
+          { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
+          { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
+          { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
+          { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
+        ].filter(
+          (field) =>
+            field.value !== undefined &&
+            field.value !== null &&
+            String(field.value).trim() !== '' &&
+            !hiddenPlayFields.includes(field.key),
+        )
+        const hasVisibleTitle = !hiddenPlayFields.includes('title')
+        const hasVisiblePronunciation = pronunciations.length > 0 && !hiddenPlayFields.includes('subtitle')
+        const hasVisibleEasyMeaning =
+          Boolean(currentPlayItem.easyMeaning?.trim()) && !hiddenPlayFields.includes('easyMeaning')
+        const hasVisibleSentenceOne =
+          Boolean(currentPlayItem.sentenceOne?.trim()) && !hiddenPlayFields.includes('sentenceOne')
+        const hasVisibleMeta = hasMeta && !hiddenPlayFields.includes('meta')
+        const hasVisibleImage = Boolean(imageUrl) && !hiddenPlayFields.includes('imageUrl')
+        const hasVisibleDictionary = Boolean(dictionaryUrl) && !hiddenPlayFields.includes('dictionaryUrl')
+        const hasVisibleCustomField =
+          hasVisibleTitle ||
+          hasVisiblePronunciation ||
+          hasVisibleEasyMeaning ||
+          hasVisibleSentenceOne ||
+          hasVisibleMeta ||
+          dictionarySections.length > 0 ||
+          hasVisibleImage ||
+          hasVisibleDictionary
 
-    if (!hasVisibleCustomField) return null
+        if (!hasVisibleCustomField) return null
 
-    return (
-      <div className="detail-content vocabulary-play-detail-content">
-        {(hasVisibleTitle || hasVisiblePronunciation || hasVisibleEasyMeaning || hasVisibleSentenceOne) ? (
-        <div className="vocabulary-player-intro">
-          {hasVisibleTitle ? (
-            <div className="vocabulary-player-word-row">
-              <h1 className="detail-word">{htmlToText(currentPlayItem.name)}</h1>
-            </div>
-          ) : null}
+        return (
+          <div className="detail-content vocabulary-play-detail-content">
+            {hasVisibleTitle || hasVisiblePronunciation || hasVisibleEasyMeaning || hasVisibleSentenceOne ? (
+              <div className="vocabulary-player-intro">
+                {hasVisibleTitle ? (
+                  <div className="vocabulary-player-word-row">
+                    <h1 className="detail-word">{htmlToText(currentPlayItem.name)}</h1>
+                  </div>
+                ) : null}
 
-          {hasVisiblePronunciation ? (
-            <div className="detail-pronunciation-list detail-pronunciation-list--player">
-              {pronunciations.map((item) => (
-                <div className="detail-pronunciation-card" key={`${item.label}-${item.value}`}>
-                  <span className="detail-pronunciation-label">{item.label}</span>
-                  <span className="detail-phonetic">/{htmlToText(item.value)}/</span>
-                  {item.audioUrl ? (
-                    <button className="detail-audio-btn detail-audio-btn--large" onClick={() => handlePlayAudioClick(item.audioUrl)} title={`${t('vocabulary.play_pronunciation')} ${item.label}`} type="button">
-                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
-                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07M18.07 5.93a9 9 0 0 1 0 12.73" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {(hasVisibleEasyMeaning || hasVisibleSentenceOne) ? (
-            <section className={`vocabulary-player-meaning${hasVisibleEasyMeaning && hasVisibleSentenceOne ? '' : ' vocabulary-player-meaning--single'}`}>
-              {hasVisibleEasyMeaning ? (
-                <div className="vocabulary-player-meaning-item vocabulary-player-meaning-item--primary">
-                  <span className="vocabulary-player-meaning-icon" aria-label={t('vocabulary.easy_meaning')} title={t('vocabulary.easy_meaning')}>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M12 3a6 6 0 0 0-3.6 10.8c.37.28.6.7.6 1.16V16h6v-1.04c0-.46.23-.88.6-1.16A6 6 0 0 0 12 3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                      <path d="M9.5 19h5M10 22h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </span>
-                  <div className="detail-html" dangerouslySetInnerHTML={renderHtml(currentPlayItem.easyMeaning)} />
-                </div>
-              ) : null}
-              {hasVisibleSentenceOne ? (
-                <div className="vocabulary-player-meaning-item">
-                  <span className="vocabulary-player-meaning-icon vocabulary-player-meaning-icon--sentence" aria-label={t('vocabulary.sentence_one')} title={t('vocabulary.sentence_one')}>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M5 5h14v10H8l-3 3V5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                      <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </span>
-                  <div className="detail-html" dangerouslySetInnerHTML={renderHtml(currentPlayItem.sentenceOne)} />
-                </div>
-              ) : null}
-            </section>
-          ) : null}
-        </div>
-        ) : null}
-
-        <div className="vocabulary-dictionary-layout">
-          {hasVisibleMeta ? (
-            <section className="detail-dictionary-row">
-              <h3>{t('vocabulary.meta')}</h3>
-              <div className="detail-dictionary-body">
-                <div className="detail-meta-info detail-meta-info--row">
-                  {currentPlayItem.partOfSpeech ? <span className="detail-meta-item">{currentPlayItem.partOfSpeech}</span> : null}
-                  {currentPlayItem.term ? <span className="detail-meta-item">{t('vocabulary.term')} {currentPlayItem.term}</span> : null}
-                  {currentPlayItem.week ? <span className="detail-meta-item">{t('vocabulary.week')} {currentPlayItem.week}</span> : null}
-                  {currentPlayItem.difficultyLevel ? <span className="detail-difficulty" data-level={currentPlayItem.difficultyLevel.toLowerCase()}>{currentPlayItem.difficultyLevel}</span> : null}
-                  {tags.map((tag) => <span key={tag} className="detail-tag">{tag}</span>)}
-                </div>
-              </div>
-            </section>
-          ) : null}
-          {dictionarySections.map((field) => (
-            <section className="detail-dictionary-row" key={field.key}>
-              <h3>{field.label}</h3>
-              <div className="detail-dictionary-body">
-                {field.key === 'synonyms' ? (
-                  <div className="detail-synonym-list">
-                    {String(field.value).split(/[,;，；]/).map((synonym) => synonym.trim()).filter(Boolean).map((synonym) => (
-                      <span className="detail-synonym" key={synonym}>{synonym}</span>
+                {hasVisiblePronunciation ? (
+                  <div className="detail-pronunciation-list detail-pronunciation-list--player">
+                    {pronunciations.map((item) => (
+                      <div className="detail-pronunciation-card" key={`${item.label}-${item.value}`}>
+                        <span className="detail-pronunciation-label">{item.label}</span>
+                        <span className="detail-phonetic">/{htmlToText(item.value)}/</span>
+                        {item.audioUrl ? (
+                          <button
+                            className="detail-audio-btn detail-audio-btn--large"
+                            onClick={() => handlePlayAudioClick(item.audioUrl)}
+                            title={`${t('vocabulary.play_pronunciation')} ${item.label}`}
+                            type="button"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                              <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
+                              <path
+                                d="M15.54 8.46a5 5 0 0 1 0 7.07M18.07 5.93a9 9 0 0 1 0 12.73"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </button>
+                        ) : null}
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="detail-html" dangerouslySetInnerHTML={renderHtml(String(field.value ?? ''))} />
-                )}
+                ) : null}
+
+                {hasVisibleEasyMeaning || hasVisibleSentenceOne ? (
+                  <section
+                    className={`vocabulary-player-meaning${hasVisibleEasyMeaning && hasVisibleSentenceOne ? '' : ' vocabulary-player-meaning--single'}`}
+                  >
+                    {hasVisibleEasyMeaning ? (
+                      <div className="vocabulary-player-meaning-item vocabulary-player-meaning-item--primary">
+                        <span
+                          className="vocabulary-player-meaning-icon"
+                          aria-label={t('vocabulary.easy_meaning')}
+                          title={t('vocabulary.easy_meaning')}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path
+                              d="M12 3a6 6 0 0 0-3.6 10.8c.37.28.6.7.6 1.16V16h6v-1.04c0-.46.23-.88.6-1.16A6 6 0 0 0 12 3Z"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinejoin="round"
+                            />
+                            <path d="M9.5 19h5M10 22h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                        </span>
+                        <div
+                          className="detail-html"
+                          dangerouslySetInnerHTML={renderHtml(currentPlayItem.easyMeaning)}
+                        />
+                      </div>
+                    ) : null}
+                    {hasVisibleSentenceOne ? (
+                      <div className="vocabulary-player-meaning-item">
+                        <span
+                          className="vocabulary-player-meaning-icon vocabulary-player-meaning-icon--sentence"
+                          aria-label={t('vocabulary.sentence_one')}
+                          title={t('vocabulary.sentence_one')}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path
+                              d="M5 5h14v10H8l-3 3V5Z"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinejoin="round"
+                            />
+                            <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                        </span>
+                        <div
+                          className="detail-html"
+                          dangerouslySetInnerHTML={renderHtml(currentPlayItem.sentenceOne)}
+                        />
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
               </div>
-            </section>
-          ))}
-          {hasVisibleImage ? (
-            <section className="detail-dictionary-row">
-              <h3>{t('vocabulary.image')}</h3>
-              <div className="detail-dictionary-body">
-                <div className="detail-image-container">
-                  <img src={imageUrl} alt={htmlToText(currentPlayItem.name)} />
-                </div>
-              </div>
-            </section>
-          ) : null}
-          {hasVisibleDictionary ? (
-            <section className="detail-dictionary-row">
-              <h3>{t('vocabulary.view_dictionary')}</h3>
-              <div className="detail-dictionary-body">
-                <a href={dictionaryUrl} target="_blank" rel="noopener noreferrer" className="detail-dictionary-link">
-                  {t('vocabulary.view_dictionary')}
-                </a>
-              </div>
-            </section>
-          ) : null}
-        </div>
-      </div>
-    )
-  })() : null
+            ) : null}
+
+            <div className="vocabulary-dictionary-layout">
+              {hasVisibleMeta ? (
+                <section className="detail-dictionary-row">
+                  <h3>{t('vocabulary.meta')}</h3>
+                  <div className="detail-dictionary-body">
+                    <div className="detail-meta-info detail-meta-info--row">
+                      {currentPlayItem.partOfSpeech ? (
+                        <span className="detail-meta-item">{currentPlayItem.partOfSpeech}</span>
+                      ) : null}
+                      {currentPlayItem.term ? (
+                        <span className="detail-meta-item">
+                          {t('vocabulary.term')} {currentPlayItem.term}
+                        </span>
+                      ) : null}
+                      {currentPlayItem.week ? (
+                        <span className="detail-meta-item">
+                          {t('vocabulary.week')} {currentPlayItem.week}
+                        </span>
+                      ) : null}
+                      {currentPlayItem.difficultyLevel ? (
+                        <span className="detail-difficulty" data-level={currentPlayItem.difficultyLevel.toLowerCase()}>
+                          {currentPlayItem.difficultyLevel}
+                        </span>
+                      ) : null}
+                      {tags.map((tag) => (
+                        <span key={tag} className="detail-tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              ) : null}
+              {dictionarySections.map((field) => (
+                <section className="detail-dictionary-row" key={field.key}>
+                  <h3>{field.label}</h3>
+                  <div className="detail-dictionary-body">
+                    {field.key === 'synonyms' ? (
+                      <div className="detail-synonym-list">
+                        {String(field.value)
+                          .split(/[,;，；]/)
+                          .map((synonym) => synonym.trim())
+                          .filter(Boolean)
+                          .map((synonym) => (
+                            <span className="detail-synonym" key={synonym}>
+                              {synonym}
+                            </span>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="detail-html" dangerouslySetInnerHTML={renderHtml(String(field.value ?? ''))} />
+                    )}
+                  </div>
+                </section>
+              ))}
+              {hasVisibleImage ? (
+                <section className="detail-dictionary-row">
+                  <h3>{t('vocabulary.image')}</h3>
+                  <div className="detail-dictionary-body">
+                    <div className="detail-image-container">
+                      <img src={imageUrl} alt={htmlToText(currentPlayItem.name)} />
+                    </div>
+                  </div>
+                </section>
+              ) : null}
+              {hasVisibleDictionary ? (
+                <section className="detail-dictionary-row">
+                  <h3>{t('vocabulary.view_dictionary')}</h3>
+                  <div className="detail-dictionary-body">
+                    <a
+                      href={dictionaryUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="detail-dictionary-link"
+                    >
+                      {t('vocabulary.view_dictionary')}
+                    </a>
+                  </div>
+                </section>
+              ) : null}
+            </div>
+          </div>
+        )
+      })()
+    : null
 
   return (
     <div className="page-container edu-page vocabularies-page">
@@ -623,9 +773,19 @@ export const EduVocabulariesPage = () => {
 
           <div className="vocab-toolbar__chips" aria-label={t('edu.tags_filter')}>
             {toolbarTags.map((tag) => (
-              <button key={tag} type="button" className={`vocab-chip${selectedTags.includes(tag) ? ' active' : ''}`} onClick={() => toggleTag(tag)}>
+              <button
+                key={tag}
+                type="button"
+                className={`vocab-chip${selectedTags.includes(tag) ? ' active' : ''}`}
+                onClick={() => toggleTag(tag)}
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M20.6 13.2 13.2 20.6a2 2 0 0 1-2.8 0L3 13.2V4h9.2l7.4 7.4a2 2 0 0 1 0 2.8Z" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                  <path
+                    d="M20.6 13.2 13.2 20.6a2 2 0 0 1-2.8 0L3 13.2V4h9.2l7.4 7.4a2 2 0 0 1 0 2.8Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
                   <circle cx="8" cy="8" r="1.4" fill="currentColor" />
                 </svg>
                 {tag}
@@ -635,7 +795,14 @@ export const EduVocabulariesPage = () => {
 
           <div className="vocab-actions">
             <div className="vocab-sort-menu">
-              <button className={`vocab-action${showSortMenu ? ' active' : ''}`} onClick={() => setShowSortMenu((value) => !value)} type="button" title={t('edu.sort_label')} aria-label={t('edu.sort_label')} aria-expanded={showSortMenu}>
+              <button
+                className={`vocab-action${showSortMenu ? ' active' : ''}`}
+                onClick={() => setShowSortMenu((value) => !value)}
+                type="button"
+                title={t('edu.sort_label')}
+                aria-label={t('edu.sort_label')}
+                aria-expanded={showSortMenu}
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <circle cx="5" cy="12" r="2" fill="currentColor" />
                   <circle cx="12" cy="12" r="2" fill="currentColor" />
@@ -686,83 +853,148 @@ export const EduVocabulariesPage = () => {
                 </div>
               ) : null}
             </div>
-            <button className={`vocab-action vocab-action--view${isExpandedView ? ' active' : ''}`} onClick={() => setIsExpandedView((value) => !value)} type="button" title={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')} aria-label={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}>
+            <button
+              className={`vocab-action vocab-action--view${isExpandedView ? ' active' : ''}`}
+              onClick={() => setIsExpandedView((value) => !value)}
+              type="button"
+              title={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}
+              aria-label={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="5" y="5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" />
                 <path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
             </button>
-            <button className="vocab-action vocab-action--print" onClick={handlePrint} type="button" disabled={displayItems.length === 0} title={t('vocabulary.print')} aria-label={t('vocabulary.print')}>
+            <button
+              className="vocab-action vocab-action--print"
+              onClick={handlePrint}
+              type="button"
+              disabled={displayItems.length === 0}
+              title={t('vocabulary.print')}
+              aria-label={t('vocabulary.print')}
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path
+                  d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
                 <path d="M7 14h10v7H7z" fill="none" stroke="currentColor" strokeWidth="2" />
               </svg>
             </button>
-            <button className={`vocab-action vocab-action--play${isAutoPlaying ? ' active playing' : ''}`} onClick={handleAutoPlay} type="button" disabled={displayItems.length === 0} title={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`} aria-label={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`}>
+            <button
+              className={`vocab-action vocab-action--play${isAutoPlaying ? ' active playing' : ''}`}
+              onClick={handleAutoPlay}
+              type="button"
+              disabled={displayItems.length === 0}
+              title={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`}
+              aria-label={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`}
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                {isAutoPlaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /> : <path d="M8 5v14l11-7Z" fill="currentColor" />}
+                {isAutoPlaying ? (
+                  <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" />
+                ) : (
+                  <path d="M8 5v14l11-7Z" fill="currentColor" />
+                )}
               </svg>
               <kbd className="vocab-action__shortcut">P</kbd>
             </button>
-            <button className={`vocab-action vocab-action--filters${showAdvancedFilters ? ' active' : ''}`} onClick={() => setShowAdvancedFilters((value) => !value)} type="button" title={t('vocabulary.filters')} aria-label={t('vocabulary.filters')}>
+            <button
+              className={`vocab-action vocab-action--filters${showAdvancedFilters ? ' active' : ''}`}
+              onClick={() => setShowAdvancedFilters((value) => !value)}
+              type="button"
+              title={t('vocabulary.filters')}
+              aria-label={t('vocabulary.filters')}
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 5h18l-7 8v5l-4 2v-7Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                <path
+                  d="M3 5h18l-7 8v5l-4 2v-7Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           </div>
         </div>
 
         {showAdvancedFilters ? (
-        <form className="vocab-filter-grid" onSubmit={applyFilters}>
-          <label className="vocab-filter-grid__search">
-            <span>Name</span>
-            <input value={draftSearchQuery} onChange={(event) => setDraftSearchQuery(event.target.value)} type="search" placeholder="Name" aria-label="Name" />
-          </label>
-          <label>
-            <span>{t('vocabulary.term')}</span>
-            <select value={draftTerm} onChange={(event) => setDraftTerm(event.target.value)}>
-              <option value="">{t('edu.filters.all')}</option>
-              {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>{t('vocabulary.week')}</span>
-            <select value={draftWeek} onChange={(event) => setDraftWeek(event.target.value)}>
-              <option value="">{t('edu.filters.all')}</option>
-              {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => <option key={value} value={value}>{value}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>{t('vocabulary.part_of_speech')}</span>
-            <select value={draftPartOfSpeech} onChange={(event) => setDraftPartOfSpeech(event.target.value)}>
-              <option value="">{t('edu.filters.all')}</option>
-              {['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition', 'conjunction', 'interjection'].map((value) => (
-                <option key={value} value={value}>{t(`vocabulary.${value}`)}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>{t('vocabulary.difficulty')}</span>
-            <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
-              <option value="">{t('edu.filters.all')}</option>
-              {difficultyLevels.map((value) => <option key={value} value={value}>{value}</option>)}
-            </select>
-          </label>
-          <div className="vocab-filter-actions">
-            <button className="vocab-filter-btn vocab-filter-btn--primary" type="submit">
-              Search
-            </button>
-            <button className="vocab-filter-btn" onClick={resetFilters} type="button">
-              {t('vocabulary.reset')}
-            </button>
-          </div>
-        </form>
+          <form className="vocab-filter-grid" onSubmit={applyFilters}>
+            <label className="vocab-filter-grid__search">
+              <span>{t('edu.name')}</span>
+              <input
+                value={draftSearchQuery}
+                onChange={(event) => setDraftSearchQuery(event.target.value)}
+                type="search"
+                placeholder={t('edu.name')}
+                aria-label={t('edu.name')}
+              />
+            </label>
+            <label>
+              <span>{t('vocabulary.term')}</span>
+              <select value={draftTerm} onChange={(event) => setDraftTerm(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {[1, 2, 3, 4].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>{t('vocabulary.week')}</span>
+              <select value={draftWeek} onChange={(event) => setDraftWeek(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>{t('vocabulary.part_of_speech')}</span>
+              <select value={draftPartOfSpeech} onChange={(event) => setDraftPartOfSpeech(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition', 'conjunction', 'interjection'].map(
+                  (value) => (
+                    <option key={value} value={value}>
+                      {t(`vocabulary.${value}`)}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+            <label>
+              <span>{t('vocabulary.difficulty')}</span>
+              <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {difficultyLevels.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="vocab-filter-actions">
+              <button className="vocab-filter-btn vocab-filter-btn--primary" type="submit">
+                {t('edu.search')}
+              </button>
+              <button className="vocab-filter-btn" onClick={resetFilters} type="button">
+                {t('vocabulary.reset')}
+              </button>
+            </div>
+          </form>
         ) : null}
       </section>
 
       {loading ? (
         <div className="vocabularies-grid" aria-hidden>
-          {skeletonItems.map((item) => <div key={item} className="vocabulary-card vocabulary-card--skeleton skeleton" />)}
+          {skeletonItems.map((item) => (
+            <div key={item} className="vocabulary-card vocabulary-card--skeleton skeleton" />
+          ))}
         </div>
       ) : error ? (
         <div className="state-card state-card--error">{error}</div>
@@ -784,7 +1016,14 @@ export const EduVocabulariesPage = () => {
         <div className="state-card">{t('vocabulary.no_vocabularies')}</div>
       )}
 
-      <Pagination currentPage={currentPage} totalPages={totalPages} pageSize={pageSize} totalElements={totalElements} onPageChange={setCurrentPage} onPageSizeChange={handlePageSizeChange} />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalElements={totalElements}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={handlePageSizeChange}
+      />
 
       {isAutoPlaying ? (
         <EduPlayBar

@@ -548,7 +548,7 @@
 
 .sentences-page .vocab-toolbar {
   margin-bottom: 18px;
-  padding: 16px 20px;
+  padding: 14px 20px;
   border: 1px solid #d5dbe4;
   border-radius: 14px;
   background: #fff;
@@ -746,8 +746,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 0.75rem;
-  margin-top: 16px;
-  padding-top: 14px;
+  margin-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid #e2e6ee;
 }
 
@@ -918,13 +918,11 @@
   border-radius: 12px;
 }
 
-@media (min-width: 1440px) {
+@media (max-width: 1024px) {
   .sentences-list {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-}
-
-@media (max-width: 1500px) {
+  
   .sentences-page .vocab-toolbar__top {
     grid-template-columns: 1fr;
   }
@@ -936,9 +934,6 @@
     border-left: 0;
     border-top: 1px solid #d3d8e1;
   }
-}
-
-@media (max-width: 1024px) {
   .sentences-page .vocab-toolbar__title h1 {
     font-size: 22px;
   }

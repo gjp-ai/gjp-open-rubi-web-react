@@ -28,11 +28,13 @@ const tagKeys: Record<EduLearningKind, string> = {
 const matches = (item: EduLearningItem, query: string) => {
   if (!query) return true
   const text = query.toLowerCase()
-  return [item.name, item.translation, item.meaning, item.easyMeaning, item.tags]
-    .some((field) => htmlToText(field).toLowerCase().includes(text))
+  return [item.name, item.translation, item.meaning, item.easyMeaning, item.tags].some((field) =>
+    htmlToText(field).toLowerCase().includes(text),
+  )
 }
 
-const getAudioUrl = (item: EduLearningItem) => item.phoneticUsAudioUrl || item.phoneticAudioUrl || item.phoneticUkAudioUrl
+const getAudioUrl = (item: EduLearningItem) =>
+  item.phoneticUsAudioUrl || item.phoneticAudioUrl || item.phoneticUkAudioUrl
 
 const formatPhonetics = (item?: EduLearningItem) => {
   if (!item) return ''
@@ -69,13 +71,15 @@ export const EduPhrasesPage = () => {
   const [draftDifficultyLevel, setDraftDifficultyLevel] = useState('')
   const [showSortMenu, setShowSortMenu] = useState(false)
   const [isExpandedView, setIsExpandedView] = useState(true)
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(true)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [isPlayPaused, setIsPlayPaused] = useState(false)
   const [currentPlayIndex, setCurrentPlayIndex] = useState(0)
   const [playInterval, setPlayInterval] = useState(() => readEduPlaySettings(playSettingsKey).interval)
   const [playOrder, setPlayOrder] = useState<EduPlayOrder>(() => readEduPlaySettings(playSettingsKey).order)
-  const [hiddenPlayFields, setHiddenPlayFields] = useState<string[]>(() => readEduPlaySettings(playSettingsKey).hiddenFields)
+  const [hiddenPlayFields, setHiddenPlayFields] = useState<string[]>(
+    () => readEduPlaySettings(playSettingsKey).hiddenFields,
+  )
   const [audioProgress, setAudioProgress] = useState(0)
   const [playReplayToken, setPlayReplayToken] = useState(0)
   const [isPlayFavoritePending, setIsPlayFavoritePending] = useState(false)
@@ -132,7 +136,9 @@ export const EduPhrasesPage = () => {
       const matchesTerm = !draftTerm || String(item.term ?? '') === draftTerm
       const matchesWeek = !draftWeek || String(item.week ?? '') === draftWeek
       const matchesDifficulty = !draftDifficultyLevel || item.difficultyLevel === draftDifficultyLevel
-      return item.lang === language && matches(item, query) && matchesTags && matchesTerm && matchesWeek && matchesDifficulty
+      return (
+        item.lang === language && matches(item, query) && matchesTags && matchesTerm && matchesWeek && matchesDifficulty
+      )
     })
     switch (sortOrder) {
       case 'alpha':
@@ -206,17 +212,31 @@ export const EduPhrasesPage = () => {
   useEffect(() => {
     const isTypingTarget = (target: EventTarget | null) => {
       const element = target as HTMLElement | null
-      return element?.tagName === 'INPUT' || element?.tagName === 'TEXTAREA' || element?.tagName === 'SELECT' || element?.isContentEditable
+      return (
+        element?.tagName === 'INPUT' ||
+        element?.tagName === 'TEXTAREA' ||
+        element?.tagName === 'SELECT' ||
+        element?.isContentEditable
+      )
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.key.toLowerCase() !== 'p' || isTypingTarget(event.target) || displayItems.length === 0) return
+      if (
+        event.defaultPrevented ||
+        event.key.toLowerCase() !== 'p' ||
+        isTypingTarget(event.target) ||
+        displayItems.length === 0
+      )
+        return
       event.preventDefault()
       if (isAutoPlaying) {
         stopAutoPlay()
         return
       }
-      playQueueRef.current = playOrder === 'random' ? shuffleArray(displayItems.map((_, index) => index)) : displayItems.map((_, index) => index)
+      playQueueRef.current =
+        playOrder === 'random'
+          ? shuffleArray(displayItems.map((_, index) => index))
+          : displayItems.map((_, index) => index)
       setCurrentPlayIndex(0)
       setIsPlayPaused(false)
       setIsAutoPlaying(true)
@@ -227,7 +247,10 @@ export const EduPhrasesPage = () => {
   }, [displayItems, isAutoPlaying, playOrder, stopAutoPlay])
 
   const startAutoPlay = () => {
-    playQueueRef.current = playOrder === 'random' ? shuffleArray(displayItems.map((_, index) => index)) : displayItems.map((_, index) => index)
+    playQueueRef.current =
+      playOrder === 'random'
+        ? shuffleArray(displayItems.map((_, index) => index))
+        : displayItems.map((_, index) => index)
     setCurrentPlayIndex(0)
     autoPlayDeadlineRef.current = 0
     autoPlayRemainingRef.current = 0
@@ -244,7 +267,9 @@ export const EduPhrasesPage = () => {
   }
 
   const handleToggleFieldVisibility = (fieldKey: string) => {
-    setHiddenPlayFields((current) => (current.includes(fieldKey) ? current.filter((key) => key !== fieldKey) : [...current, fieldKey]))
+    setHiddenPlayFields((current) =>
+      current.includes(fieldKey) ? current.filter((key) => key !== fieldKey) : [...current, fieldKey],
+    )
   }
 
   const handleAudioProgressSeek = (nextProgress: number) => {
@@ -339,7 +364,12 @@ export const EduPhrasesPage = () => {
 
   useEffect(() => {
     playIntervalRef.current = playInterval
-    saveEduPlaySettings(playSettingsKey, { interval: playInterval, order: playOrder, pronunciation: 'us', hiddenFields: hiddenPlayFields })
+    saveEduPlaySettings(playSettingsKey, {
+      interval: playInterval,
+      order: playOrder,
+      pronunciation: 'us',
+      hiddenFields: hiddenPlayFields,
+    })
   }, [hiddenPlayFields, playInterval, playOrder])
 
   useEffect(() => {
@@ -386,31 +416,41 @@ export const EduPhrasesPage = () => {
 
   useEffect(() => stopAutoPlay, [stopAutoPlay])
 
-  const toolbarTags = sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL', 'Phrase', 'Idiom']
+  const toolbarTags =
+    sectionTags.length > 0 ? sectionTags : ['P3', 'P4', 'English', 'Science', 'School', 'LL', 'Phrase', 'Idiom']
   const currentPlayItem = displayItems[playQueueRef.current[currentPlayIndex] ?? currentPlayIndex]
   const currentPlaySubtitle = formatPhonetics(currentPlayItem)
-  const currentPlayDescription = currentPlayItem ? currentPlayItem.sentenceOne || currentPlayItem.sentenceTwo || currentPlayItem.explanation || '' : ''
-  const currentPlayHeroFields: EduPlayField[] = currentPlayItem ? [
-    { key: 'subtitle', label: t('vocabulary.phonetic'), value: currentPlaySubtitle },
-    { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
-    { key: 'difficultyLevel', label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
-    { key: 'term', label: t('vocabulary.term'), value: currentPlayItem.term },
-    { key: 'week', label: t('vocabulary.week'), value: currentPlayItem.week },
-    { key: 'tags', label: 'Tags', value: currentPlayItem.tags },
-  ] : []
-  const currentPlayFields: EduPlayField[] = currentPlayItem ? [
-    { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
-    { key: 'easyMeaning', label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
-    { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
-    { key: 'sentenceOne', label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
-    { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
-    { key: 'explanation', label: t('edu.explanation'), value: currentPlayItem.explanation },
-    { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
-  ] : []
+  const currentPlayDescription = currentPlayItem
+    ? currentPlayItem.sentenceOne || currentPlayItem.sentenceTwo || currentPlayItem.explanation || ''
+    : ''
+  const currentPlayHeroFields: EduPlayField[] = currentPlayItem
+    ? [
+        { key: 'subtitle', label: t('vocabulary.phonetic'), value: currentPlaySubtitle },
+        { key: 'translation', label: t('vocabulary.translation'), value: currentPlayItem.translation },
+        { key: 'difficultyLevel', label: t('vocabulary.difficulty'), value: currentPlayItem.difficultyLevel },
+        { key: 'term', label: t('vocabulary.term'), value: currentPlayItem.term },
+        { key: 'week', label: t('vocabulary.week'), value: currentPlayItem.week },
+        { key: 'tags', label: 'Tags', value: currentPlayItem.tags },
+      ]
+    : []
+  const currentPlayFields: EduPlayField[] = currentPlayItem
+    ? [
+        { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: currentPlayItem.meaningClue },
+        { key: 'easyMeaning', label: t('vocabulary.easy_meaning'), value: currentPlayItem.easyMeaning },
+        { key: 'meaning', label: t('vocabulary.meaning'), value: currentPlayItem.meaning },
+        { key: 'sentenceOne', label: t('vocabulary.sentence_one'), value: currentPlayItem.sentenceOne },
+        { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: currentPlayItem.sentenceTwo },
+        { key: 'explanation', label: t('edu.explanation'), value: currentPlayItem.explanation },
+        { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: currentPlayItem.additionalInfo },
+      ]
+    : []
 
-  const handleFavoriteUpdated = useCallback((item: EduLearningItem) => {
-    updateItem(item)
-  }, [updateItem])
+  const handleFavoriteUpdated = useCallback(
+    (item: EduLearningItem) => {
+      updateItem(item)
+    },
+    [updateItem],
+  )
 
   const handleCurrentPlayFavoriteToggle = useCallback(async () => {
     if (!currentPlayItem) return
@@ -431,9 +471,14 @@ export const EduPhrasesPage = () => {
     audio.play().catch((error) => console.error('Audio playback failed:', error))
   }, [])
 
-  const currentPlayFullScreenContent = currentPlayItem && hasVisiblePhraseLearningContent(currentPlayItem, hiddenPlayFields) ? (
-    <PhraseLearningContent phrase={currentPlayItem} hiddenFieldKeys={hiddenPlayFields} onPlayAudio={handlePlayAudioClick} />
-  ) : null
+  const currentPlayFullScreenContent =
+    currentPlayItem && hasVisiblePhraseLearningContent(currentPlayItem, hiddenPlayFields) ? (
+      <PhraseLearningContent
+        phrase={currentPlayItem}
+        hiddenFieldKeys={hiddenPlayFields}
+        onPlayAudio={handlePlayAudioClick}
+      />
+    ) : null
 
   return (
     <div className="page-container edu-page phrases-page">
@@ -445,9 +490,19 @@ export const EduPhrasesPage = () => {
           </div>
           <div className="vocab-toolbar__chips" aria-label={t('edu.tags_filter')}>
             {toolbarTags.map((tag) => (
-              <button key={tag} type="button" className={`vocab-chip${selectedTags.includes(tag) ? ' active' : ''}`} onClick={() => toggleTag(tag)}>
+              <button
+                key={tag}
+                type="button"
+                className={`vocab-chip${selectedTags.includes(tag) ? ' active' : ''}`}
+                onClick={() => toggleTag(tag)}
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M20.6 13.2 13.2 20.6a2 2 0 0 1-2.8 0L3 13.2V4h9.2l7.4 7.4a2 2 0 0 1 0 2.8Z" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                  <path
+                    d="M20.6 13.2 13.2 20.6a2 2 0 0 1-2.8 0L3 13.2V4h9.2l7.4 7.4a2 2 0 0 1 0 2.8Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
                   <circle cx="8" cy="8" r="1.4" fill="currentColor" />
                 </svg>
                 {tag}
@@ -456,7 +511,14 @@ export const EduPhrasesPage = () => {
           </div>
           <div className="vocab-actions">
             <div className="vocab-sort-menu">
-              <button className={`vocab-action${showSortMenu ? ' active' : ''}`} onClick={() => setShowSortMenu((value) => !value)} type="button" title={t('edu.sort_label')} aria-label={t('edu.sort_label')} aria-expanded={showSortMenu}>
+              <button
+                className={`vocab-action${showSortMenu ? ' active' : ''}`}
+                onClick={() => setShowSortMenu((value) => !value)}
+                type="button"
+                title={t('edu.sort_label')}
+                aria-label={t('edu.sort_label')}
+                aria-expanded={showSortMenu}
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <circle cx="5" cy="12" r="2" fill="currentColor" />
                   <circle cx="12" cy="12" r="2" fill="currentColor" />
@@ -488,51 +550,120 @@ export const EduPhrasesPage = () => {
                 </div>
               ) : null}
             </div>
-            <button className={`vocab-action vocab-action--view${isExpandedView ? ' active' : ''}`} onClick={() => setIsExpandedView((value) => !value)} type="button" title={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')} aria-label={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            <button
+              className={`vocab-action vocab-action--view${isExpandedView ? ' active' : ''}`}
+              onClick={() => setIsExpandedView((value) => !value)}
+              type="button"
+              title={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}
+              aria-label={isExpandedView ? t('vocabulary.show_compact') : t('vocabulary.show_detailed')}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
             </button>
-            <button className="vocab-action vocab-action--print" onClick={handlePrint} type="button" disabled={displayItems.length === 0} title={t('vocabulary.print')} aria-label={t('vocabulary.print')}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M7 14h10v7H7z" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
+            <button
+              className="vocab-action vocab-action--print"
+              onClick={handlePrint}
+              type="button"
+              disabled={displayItems.length === 0}
+              title={t('vocabulary.print')}
+              aria-label={t('vocabulary.print')}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path d="M7 14h10v7H7z" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
             </button>
-            <button className={`vocab-action vocab-action--play${isAutoPlaying ? ' active playing' : ''}`} onClick={handleAutoPlay} type="button" disabled={displayItems.length === 0} title={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`} aria-label={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">{isAutoPlaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /> : <path d="M8 5v14l11-7Z" fill="currentColor" />}</svg>
+            <button
+              className={`vocab-action vocab-action--play${isAutoPlaying ? ' active playing' : ''}`}
+              onClick={handleAutoPlay}
+              type="button"
+              disabled={displayItems.length === 0}
+              title={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`}
+              aria-label={`${isAutoPlaying ? t('vocabulary.stop_auto_play') : t('vocabulary.play_all')} (P)`}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                {isAutoPlaying ? (
+                  <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" />
+                ) : (
+                  <path d="M8 5v14l11-7Z" fill="currentColor" />
+                )}
+              </svg>
               <kbd className="vocab-action__shortcut">P</kbd>
             </button>
-            <button className={`vocab-action vocab-action--filters${showAdvancedFilters ? ' active' : ''}`} onClick={() => setShowAdvancedFilters((value) => !value)} type="button" title={t('vocabulary.filters')} aria-label={t('vocabulary.filters')}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v5l-4 2v-7Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
+            <button
+              className={`vocab-action vocab-action--filters${showAdvancedFilters ? ' active' : ''}`}
+              onClick={() => setShowAdvancedFilters((value) => !value)}
+              type="button"
+              title={t('vocabulary.filters')}
+              aria-label={t('vocabulary.filters')}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 5h18l-7 8v5l-4 2v-7Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           </div>
         </div>
         {showAdvancedFilters ? (
           <form className="vocab-filter-grid" onSubmit={applyFilters}>
             <label className="vocab-filter-grid__search">
-              <span>Name</span>
-              <input value={draftSearchQuery} onChange={(event) => setDraftSearchQuery(event.target.value)} type="search" placeholder="Name" aria-label="Name" />
-            </label>
-            <label>
-              <span>{t('vocabulary.difficulty')}</span>
-              <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
-                <option value="">{t('edu.filters.all')}</option>
-                {difficultyLevels.map((value) => <option key={value} value={value}>{value}</option>)}
-              </select>
+              <span>{t('edu.name')}</span>
+              <input
+                value={draftSearchQuery}
+                onChange={(event) => setDraftSearchQuery(event.target.value)}
+                type="search"
+                placeholder={t('edu.name')}
+                aria-label={t('edu.name')}
+              />
             </label>
             <label>
               <span>{t('vocabulary.term')}</span>
               <select value={draftTerm} onChange={(event) => setDraftTerm(event.target.value)}>
                 <option value="">{t('edu.filters.all')}</option>
-                {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value}</option>)}
+                {[1, 2, 3, 4].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
               </select>
             </label>
             <label>
               <span>{t('vocabulary.week')}</span>
               <select value={draftWeek} onChange={(event) => setDraftWeek(event.target.value)}>
                 <option value="">{t('edu.filters.all')}</option>
-                {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => <option key={value} value={value}>{value}</option>)}
+                {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>{t('vocabulary.difficulty')}</span>
+              <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
+                <option value="">{t('edu.filters.all')}</option>
+                {difficultyLevels.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
               </select>
             </label>
             <div className="vocab-filter-actions">
               <button className="vocab-filter-btn vocab-filter-btn--primary" type="submit">
-                Search
+                {t('edu.search')}
               </button>
               <button className="vocab-filter-btn" onClick={resetFilters} type="button">
                 {t('vocabulary.reset')}
@@ -544,14 +675,23 @@ export const EduPhrasesPage = () => {
 
       {loading ? (
         <div className="phrases-grid" aria-hidden>
-          {skeletonItems.map((item) => <div key={item} className="phrase-card phrase-card--skeleton skeleton" />)}
+          {skeletonItems.map((item) => (
+            <div key={item} className="phrase-card phrase-card--skeleton skeleton" />
+          ))}
         </div>
       ) : error ? (
         <div className="state-card state-card--error">{error}</div>
       ) : (
         <div className="phrases-grid">
           {displayItems.map((item, index) => (
-            <PhraseCard key={item.id} phrase={item} phrases={displayItems} currentIndex={index} expanded={isExpandedView} onFavoriteUpdated={handleFavoriteUpdated} />
+            <PhraseCard
+              key={item.id}
+              phrase={item}
+              phrases={displayItems}
+              currentIndex={index}
+              expanded={isExpandedView}
+              onFavoriteUpdated={handleFavoriteUpdated}
+            />
           ))}
         </div>
       )}

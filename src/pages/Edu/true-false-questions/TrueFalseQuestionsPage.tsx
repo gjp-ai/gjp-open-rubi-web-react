@@ -18,8 +18,9 @@ type SortOrder = 'displayOrder' | 'alpha' | 'recent'
 const matches = (question: EduQuestion, query: string) => {
   if (!query) return true
   const text = query.toLowerCase()
-  return [question.question, question.answer, question.explanation, question.tags]
-    .some((field) => htmlToText(field).toLowerCase().includes(text))
+  return [question.question, question.answer, question.explanation, question.tags].some((field) =>
+    htmlToText(field).toLowerCase().includes(text),
+  )
 }
 
 export const EduTrueFalseQuestionsPage = () => {
@@ -46,7 +47,7 @@ export const EduTrueFalseQuestionsPage = () => {
   const [showSortMenu, setShowSortMenu] = useState(false)
   const [isExpandedView, setIsExpandedView] = useState(false)
   const [showPrintDialog, setShowPrintDialog] = useState(false)
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
   const [showExam, setShowExam] = useState(false)
   const [printOptions, setPrintOptions] = useState({ showAnswer: false, showExplanation: false })
   const backendSearchQuery = searchQuery.trim() || undefined
@@ -81,8 +82,19 @@ export const EduTrueFalseQuestionsPage = () => {
     [kind, backendSearchQuery, backendTag, backendFilters],
   )
 
-  const { items, loading, error, currentPage, setCurrentPage, totalElements, totalPages, pageSize, handlePageSizeChange, updateItem, skeletonItems } =
-    usePagedFetch(fetcher, { initialPageSize: 40, skeletonCount: 8 })
+  const {
+    items,
+    loading,
+    error,
+    currentPage,
+    setCurrentPage,
+    totalElements,
+    totalPages,
+    pageSize,
+    handlePageSizeChange,
+    updateItem,
+    skeletonItems,
+  } = usePagedFetch(fetcher, { initialPageSize: 40, skeletonCount: 8 })
 
   const displayItems = useMemo(() => {
     const query = draftSearchQuery.trim()
@@ -99,7 +111,9 @@ export const EduTrueFalseQuestionsPage = () => {
     })
     switch (sortOrder) {
       case 'alpha':
-        filtered = [...filtered].sort((a, b) => htmlToText(a.question).localeCompare(htmlToText(b.question), language === 'ZH' ? 'zh-CN' : 'en'))
+        filtered = [...filtered].sort((a, b) =>
+          htmlToText(a.question).localeCompare(htmlToText(b.question), language === 'ZH' ? 'zh-CN' : 'en'),
+        )
         break
       case 'recent':
         filtered = [...filtered].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
@@ -108,7 +122,19 @@ export const EduTrueFalseQuestionsPage = () => {
         filtered = [...filtered].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     }
     return filtered
-  }, [draftDifficultyLevel, draftGradeLevel, draftSearchQuery, draftSubject, draftTerm, draftTopic, draftWeek, items, language, selectedTags, sortOrder])
+  }, [
+    draftDifficultyLevel,
+    draftGradeLevel,
+    draftSearchQuery,
+    draftSubject,
+    draftTerm,
+    draftTopic,
+    draftWeek,
+    items,
+    language,
+    selectedTags,
+    sortOrder,
+  ])
 
   const applyFilters = (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
@@ -182,15 +208,32 @@ export const EduTrueFalseQuestionsPage = () => {
                       key={tag}
                       className={`tag-chip ${isActive ? 'active' : ''}`}
                       onClick={() => {
-                        setSelectedTags((current) => (current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]))
+                        setSelectedTags((current) =>
+                          current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag],
+                        )
                         setCurrentPage(1)
                       }}
                       aria-pressed={isActive}
                       type="button"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <line x1="7" y1="7" x2="7.01" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path
+                          d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <line
+                          x1="7"
+                          y1="7"
+                          x2="7.01"
+                          y2="7"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                       <span>{tag}</span>
                     </button>
@@ -246,7 +289,14 @@ export const EduTrueFalseQuestionsPage = () => {
               className="action-btn action-btn--exam"
               disabled={displayItems.length === 0}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path d="M8 5v14l11-7-11-7Z" fill="currentColor" />
               </svg>
             </button>
@@ -255,20 +305,36 @@ export const EduTrueFalseQuestionsPage = () => {
               onClick={handleToggleView}
               title={isExpandedView ? t('vocabulary.compact') : t('vocabulary.detailed')}
               aria-label={isExpandedView ? t('vocabulary.compact') : t('vocabulary.detailed')}
-                className={`action-btn action-btn--view ${isExpandedView ? 'active' : ''}`}
+              className={`action-btn action-btn--view ${isExpandedView ? 'active' : ''}`}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {isExpandedView ? (
                   <g>
-                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
-                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </g>
                 ) : (
                   <g>
-                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
-                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="6" y1="12" x2="14" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="6" y1="16" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <line
+                      x1="6"
+                      y1="12"
+                      x2="14"
+                      y2="12"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="6"
+                      y1="16"
+                      x2="16"
+                      y2="16"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </g>
                 )}
               </svg>
@@ -283,9 +349,27 @@ export const EduTrueFalseQuestionsPage = () => {
               disabled={displayItems.length === 0}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 9V2h12v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M6 14h12v8H6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M6 9V2h12v7"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M6 14h12v8H6z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
             {/* Filter toggle */}
@@ -297,7 +381,13 @@ export const EduTrueFalseQuestionsPage = () => {
               className={`action-btn action-btn--filters ${showFilters ? 'active' : ''}`}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           </div>
@@ -309,8 +399,21 @@ export const EduTrueFalseQuestionsPage = () => {
             <div className="filters-panel-inner">
               <form className="mcq-search-sort-row" onSubmit={applyFilters}>
                 <div className="mcq-search-box">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="m20 20-3.5-3.5M16 10.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="m20 20-3.5-3.5M16 10.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                   <input
                     type="search"
@@ -320,16 +423,28 @@ export const EduTrueFalseQuestionsPage = () => {
                     onChange={(event) => setDraftSearchQuery(event.target.value)}
                   />
                   {draftSearchQuery && (
-                    <button type="button" className="mcq-search-clear" onClick={() => setDraftSearchQuery('')} aria-label={t('edu.search_clear')}>
+                    <button
+                      type="button"
+                      className="mcq-search-clear"
+                      onClick={() => setDraftSearchQuery('')}
+                      aria-label={t('edu.search_clear')}
+                    >
                       ×
                     </button>
                   )}
                 </div>
                 <label className="mcq-filter-field">
                   <span>{t('vocabulary.difficulty')}</span>
-                  <select value={draftDifficultyLevel} onChange={(event) => setDraftDifficultyLevel(event.target.value)}>
+                  <select
+                    value={draftDifficultyLevel}
+                    onChange={(event) => setDraftDifficultyLevel(event.target.value)}
+                  >
                     <option value="">{t('edu.filters.all')}</option>
-                    {difficultyLevels.map((value) => <option key={value} value={value}>{value}</option>)}
+                    {difficultyLevels.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="mcq-filter-field">
@@ -343,7 +458,11 @@ export const EduTrueFalseQuestionsPage = () => {
                     }}
                   >
                     <option value="">{t('edu.filters.all')}</option>
-                    {gradeOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+                    {gradeOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="mcq-filter-field">
@@ -356,33 +475,49 @@ export const EduTrueFalseQuestionsPage = () => {
                     }}
                   >
                     <option value="">{t('edu.filters.all')}</option>
-                    {subjectOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+                    {subjectOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="mcq-filter-field">
                   <span>{t('question.topic')}</span>
                   <select value={draftTopic} onChange={(event) => setDraftTopic(event.target.value)}>
                     <option value="">{t('edu.filters.all')}</option>
-                    {topicOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+                    {topicOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="mcq-filter-field">
                   <span>{t('vocabulary.term')}</span>
                   <select value={draftTerm} onChange={(event) => setDraftTerm(event.target.value)}>
                     <option value="">{t('edu.filters.all')}</option>
-                    {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value}</option>)}
+                    {[1, 2, 3, 4].map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="mcq-filter-field">
                   <span>{t('vocabulary.week')}</span>
                   <select value={draftWeek} onChange={(event) => setDraftWeek(event.target.value)}>
                     <option value="">{t('edu.filters.all')}</option>
-                    {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => <option key={value} value={value}>{value}</option>)}
+                    {Array.from({ length: 14 }, (_, index) => index + 1).map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <div className="mcq-filter-actions">
                   <button className="mcq-filter-btn mcq-filter-btn--primary" type="submit">
-                    Search
+                    {t('edu.search')}
                   </button>
                   <button className="mcq-filter-btn" onClick={handleReset} type="button">
                     {t('vocabulary.reset')}
@@ -396,7 +531,11 @@ export const EduTrueFalseQuestionsPage = () => {
 
       {/* ───── Content ───── */}
       {loading ? (
-        <div className="tfq-grid" aria-hidden>{skeletonItems.map((item) => <div key={item} className="tfq-card skeleton" />)}</div>
+        <div className="tfq-grid" aria-hidden>
+          {skeletonItems.map((item) => (
+            <div key={item} className="tfq-card skeleton" />
+          ))}
+        </div>
       ) : error ? (
         <div className="state-card state-card--error">{error}</div>
       ) : displayItems.length === 0 ? (
@@ -404,12 +543,24 @@ export const EduTrueFalseQuestionsPage = () => {
       ) : (
         <div className="tfq-grid">
           {displayItems.map((question) => (
-            <TrueFalseQuestionCard key={question.id} question={question} isExpandedView={isExpandedView} onFavoriteUpdated={updateItem} />
+            <TrueFalseQuestionCard
+              key={question.id}
+              question={question}
+              isExpandedView={isExpandedView}
+              onFavoriteUpdated={updateItem}
+            />
           ))}
         </div>
       )}
 
-      <Pagination currentPage={currentPage} totalPages={totalPages} pageSize={pageSize} totalElements={totalElements} onPageChange={setCurrentPage} onPageSizeChange={handlePageSizeChange} />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalElements={totalElements}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={handlePageSizeChange}
+      />
 
       {/* ───── Print Dialog ───── */}
       {showPrintDialog && (
