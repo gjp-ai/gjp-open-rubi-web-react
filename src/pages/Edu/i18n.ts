@@ -119,7 +119,7 @@ export default {
   'vocabulary.select_all': { EN: 'Select all', ZH: '全选' },
   'vocabulary.unselect_all': { EN: 'Unselect all', ZH: '取消全选' },
   'vocabulary.focus_mode': { EN: 'Focus mode', ZH: '专注模式' },
-  'vocabulary.focus_mode_description': { EN: 'All fields are hidden. Keep listening, or restore the study cards when you are ready.', ZH: '所有字段已隐藏。继续聆听，或在需要时恢复学习卡片。' },
+  'vocabulary.focus_mode_description': { EN: 'All fields are hidden. Keep listening and focus on the audio.', ZH: '所有字段已隐藏。继续聆听，专注音频。' },
   'vocabulary.restore_fields': { EN: 'Restore fields', ZH: '恢复字段' },
   'vocabulary.speaking': { EN: 'Speaking', ZH: '朗读中' },
   'vocabulary.ready_to_speak': { EN: 'Ready to speak', ZH: '准备朗读' },

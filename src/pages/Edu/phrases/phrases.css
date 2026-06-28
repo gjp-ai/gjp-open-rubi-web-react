@@ -295,8 +295,8 @@
 }
 
 .phrase-detail-modal--learning {
-  width: min(880px, calc(100vw - 48px));
-  max-height: min(86vh, 860px);
+  width: min(1200px, calc(100vw - 48px));
+  max-height: min(98vh);
   overflow: auto;
   border: 1px solid #d9dee7;
   border-radius: 16px;

@@ -1,35 +1,115 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Dispatch, ReactNode, SetStateAction } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import type { EduLearningItem } from '../../../shared/data/types'
 import { useT } from '../../../shared/i18n'
 import { FavoriteToggleButton } from '../FavoriteToggleButton'
 import { hasFavoriteTag } from '../favoriteUtils'
 import { toggleEduLearningFavoriteTag } from '../eduApi'
 import { htmlToText, renderHtml, splitTags } from '../eduUtils'
+import { getPhrasePronunciations, hasPhraseMeta, hasText, hasVisiblePhraseLearningContent } from './phraseLearningContentUtils'
 
-type ToggleSection = 'translation' | 'meaningClue' | 'easyMeaning' | 'meaning' | 'sentenceOne' | 'sentenceTwo' | 'additionalInfo'
-
-type Pronunciation = {
-  label: string
-  value: string
-  audioUrl?: string | null
+type PhraseLearningContentProps = {
+  phrase: EduLearningItem
+  hiddenFieldKeys?: string[]
+  onPlayAudio?: (audioUrl?: string | null) => void
+  className?: string
 }
 
-const initialOpen: Record<ToggleSection, boolean> = {
-  translation: true,
-  meaningClue: true,
-  easyMeaning: true,
-  meaning: true,
-  sentenceOne: true,
-  sentenceTwo: true,
-  additionalInfo: true,
-}
+const getPhraseContentRows = (phrase: EduLearningItem, t: ReturnType<typeof useT>, hiddenFieldKeys: string[]) => [
+  { key: 'translation', label: t('vocabulary.translation'), value: phrase.translation },
+  { key: 'meaningClue', label: t('vocabulary.meaning_clue'), value: phrase.meaningClue },
+  { key: 'meaning', label: t('vocabulary.meaning'), value: phrase.meaning },
+  { key: 'sentenceTwo', label: t('vocabulary.sentence_two'), value: phrase.sentenceTwo },
+  { key: 'explanation', label: t('edu.explanation'), value: phrase.explanation },
+  { key: 'additionalInfo', label: t('vocabulary.additional_info'), value: phrase.additionalInfo },
+].filter((field) => hasText(field.value) && !hiddenFieldKeys.includes(field.key))
 
-const getPronunciations = (item: EduLearningItem): Pronunciation[] => {
-  const rows: Pronunciation[] = []
-  if (item.phoneticUs) rows.push({ label: 'US', value: item.phoneticUs, audioUrl: item.phoneticUsAudioUrl || item.phoneticAudioUrl })
-  if (item.phoneticUk) rows.push({ label: 'UK', value: item.phoneticUk, audioUrl: item.phoneticUkAudioUrl })
-  return rows.length || !item.phonetic ? rows : [{ label: 'IPA', value: item.phonetic, audioUrl: item.phoneticAudioUrl }]
+export const PhraseLearningContent = ({ phrase, hiddenFieldKeys = [], onPlayAudio, className = '' }: PhraseLearningContentProps) => {
+  const t = useT()
+  const pronunciations = getPhrasePronunciations(phrase)
+  const tags = splitTags(phrase.tags)
+  const hasMeta = hasPhraseMeta(phrase)
+  const rows = getPhraseContentRows(phrase, t, hiddenFieldKeys)
+  const hasVisibleTitle = !hiddenFieldKeys.includes('title')
+  const hasVisiblePronunciation = pronunciations.length > 0 && !hiddenFieldKeys.includes('subtitle')
+  const hasVisibleEasyMeaning = hasText(phrase.easyMeaning) && !hiddenFieldKeys.includes('easyMeaning')
+  const hasVisibleSentenceOne = hasText(phrase.sentenceOne) && !hiddenFieldKeys.includes('sentenceOne')
+  const hasVisibleMeta = hasMeta && !hiddenFieldKeys.includes('meta')
+
+  if (!hasVisiblePhraseLearningContent(phrase, hiddenFieldKeys)) return null
+
+  return (
+    <div className={`edu-play-detail-content${className ? ` ${className}` : ''}`}>
+      {(hasVisibleTitle || hasVisiblePronunciation || hasVisibleEasyMeaning || hasVisibleSentenceOne) ? (
+        <div className="edu-play-detail-intro">
+          {hasVisibleTitle ? <h1 className="edu-play-detail-title" dangerouslySetInnerHTML={renderHtml(phrase.name)} /> : null}
+          {hasVisiblePronunciation ? (
+            <div className="edu-play-detail-pronunciations">
+              {pronunciations.map((item) => (
+                <div className="edu-play-detail-pronunciation" key={`${item.label}-${item.value}`}>
+                  <span>{item.label}</span>
+                  <span>/{htmlToText(item.value)}/</span>
+                  {item.audioUrl && onPlayAudio ? (
+                    <button className="edu-play-detail-audio" onClick={() => onPlayAudio(item.audioUrl)} title={`${t('vocabulary.play_pronunciation')} ${item.label}`} type="button">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07M18.07 5.93a9 9 0 0 1 0 12.73" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {(hasVisibleEasyMeaning || hasVisibleSentenceOne) ? (
+            <section className="edu-play-detail-highlight">
+              {hasVisibleEasyMeaning ? (
+                <div className="edu-play-detail-highlight-item edu-play-detail-highlight-item--primary">
+                  <span className="edu-play-detail-icon" aria-label={t('vocabulary.easy_meaning')} title={t('vocabulary.easy_meaning')}>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 3a6 6 0 0 0-3.6 10.8c.37.28.6.7.6 1.16V16h6v-1.04c0-.46.23-.88.6-1.16A6 6 0 0 0 12 3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                      <path d="M9.5 19h5M10 22h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                  <div dangerouslySetInnerHTML={renderHtml(phrase.easyMeaning)} />
+                </div>
+              ) : null}
+              {hasVisibleSentenceOne ? (
+                <div className="edu-play-detail-highlight-item">
+                  <span className="edu-play-detail-icon edu-play-detail-icon--sentence" aria-label={t('vocabulary.sentence_one')} title={t('vocabulary.sentence_one')}>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M5 5h14v10H8l-3 3V5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                      <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                  <div dangerouslySetInnerHTML={renderHtml(phrase.sentenceOne)} />
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="edu-play-detail-rows">
+        {hasVisibleMeta ? (
+          <section className="edu-play-detail-row">
+            <h3>{t('vocabulary.meta')}</h3>
+            <div className="edu-play-detail-row-body edu-play-detail-meta">
+              {phrase.term ? <span className="edu-play-detail-chip">{t('vocabulary.term')} {phrase.term}</span> : null}
+              {phrase.week ? <span className="edu-play-detail-chip">{t('vocabulary.week')} {phrase.week}</span> : null}
+              {phrase.difficultyLevel ? <span className="edu-play-detail-chip edu-play-detail-chip--difficulty">{phrase.difficultyLevel}</span> : null}
+              {tags.map((tag) => <span key={tag} className="edu-play-detail-chip">{tag}</span>)}
+            </div>
+          </section>
+        ) : null}
+        {rows.map((field) => (
+          <section className="edu-play-detail-row" key={field.key}>
+            <h3>{field.label}</h3>
+            <div className="edu-play-detail-row-body" dangerouslySetInnerHTML={renderHtml(String(field.value ?? ''))} />
+          </section>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 const getAutoPlayAudioUrl = (item: EduLearningItem) => item.phoneticUsAudioUrl || item.phoneticAudioUrl || item.phoneticUkAudioUrl
@@ -53,16 +133,11 @@ export const PhraseDetail = ({
 }) => {
   const t = useT()
   const [currentPhrase, setCurrentPhrase] = useState(phrase)
-  const [open, setOpen] = useState(initialOpen)
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true)
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const pronunciations = useMemo(() => getPronunciations(currentPhrase), [currentPhrase])
-  const allOpen = Object.values(open).every(Boolean)
-  const tags = splitTags(currentPhrase.tags)
-  const hasMeta = tags.length > 0 || currentPhrase.term || currentPhrase.week || currentPhrase.difficultyLevel
   const isFavourite = hasFavoriteTag(currentPhrase)
 
   const playAudio = useCallback((audioUrl?: string | null) => {
@@ -119,13 +194,6 @@ export const PhraseDetail = ({
     [],
   )
 
-  const section = (key: ToggleSection, title: string, content?: string | null) =>
-    content?.trim() ? (
-      <DetailSection title={title} isOpen={open[key]} onToggle={() => setOpen((current) => ({ ...current, [key]: !current[key] }))}>
-        <div className="detail-html" dangerouslySetInnerHTML={renderHtml(content)} />
-      </DetailSection>
-    ) : null
-
   return (
     <div className="phrase-detail-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
       <div className="phrase-detail-modal phrase-detail-modal--learning" ref={modalRef} tabIndex={-1}>
@@ -141,56 +209,9 @@ export const PhraseDetail = ({
             disabled={isTogglingFavorite}
             onClick={handleToggleFavorite}
           />
-          <button type="button" className="detail-action-btn" onClick={() => setOpen(Object.fromEntries(Object.keys(initialOpen).map((key) => [key, !allOpen])) as Record<ToggleSection, boolean>)} title={allOpen ? t('vocabulary.collapse_all') : t('vocabulary.expand_all')}>
-            {allOpen ? '−' : '+'}
-          </button>
         </div>
 
-        <div className="detail-content">
-          <div className="detail-hero">
-            <div className="detail-hero__main">
-              <p className="detail-eyebrow">{t('nav.edu_phrases')}</p>
-              <h1 className="detail-word" dangerouslySetInnerHTML={renderHtml(currentPhrase.name)} />
-              {pronunciations.length ? (
-                <div className="detail-pronunciation-list">
-                  {pronunciations.map((item) => (
-                    <div className="detail-pronunciation-card" key={`${item.label}-${item.value}`}>
-                      <span className="detail-pronunciation-label">{item.label}</span>
-                      <span className="detail-phonetic">/{htmlToText(item.value)}/</span>
-                      {item.audioUrl ? (
-                        <button className="detail-audio-btn detail-audio-btn--large" onClick={() => playAudio(item.audioUrl)} title={`${t('vocabulary.play_pronunciation')} ${item.label}`} type="button">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
-                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M18.07 5.93a9 9 0 0 1 0 12.73" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          {hasMeta ? (
-            <div className="detail-meta-info detail-meta-info--row">
-              {currentPhrase.term ? <span className="detail-meta-item">{t('vocabulary.term')} {currentPhrase.term}</span> : null}
-              {currentPhrase.week ? <span className="detail-meta-item">{t('vocabulary.week')} {currentPhrase.week}</span> : null}
-              {currentPhrase.difficultyLevel ? <span className="detail-difficulty">{currentPhrase.difficultyLevel}</span> : null}
-              {tags.map((tag) => <span key={tag} className="detail-tag">{tag}</span>)}
-            </div>
-          ) : null}
-
-          <div className="detail-section-grid">
-            {section('translation', t('vocabulary.translation'), currentPhrase.translation)}
-            {section('meaningClue', t('vocabulary.meaning_clue'), currentPhrase.meaningClue)}
-            {section('easyMeaning', t('vocabulary.easy_meaning'), currentPhrase.easyMeaning)}
-            {section('meaning', t('vocabulary.meaning'), currentPhrase.meaning ?? currentPhrase.explanation)}
-            {section('sentenceOne', t('vocabulary.sentence_one'), currentPhrase.sentenceOne)}
-            {section('sentenceTwo', t('vocabulary.sentence_two'), currentPhrase.sentenceTwo)}
-            {section('additionalInfo', t('vocabulary.additional_info'), currentPhrase.additionalInfo)}
-          </div>
-        </div>
+        <PhraseLearningContent phrase={currentPhrase} onPlayAudio={playAudio} className="edu-play-detail-content--modal" />
 
         <div className="detail-navigation">
           <button type="button" className="detail-nav-btn detail-nav-icon-btn" onClick={onPrevious} disabled={!hasPrevious} title={t('vocabulary.previous')}>
@@ -208,16 +229,6 @@ export const PhraseDetail = ({
     </div>
   )
 }
-
-const DetailSection = ({ title, isOpen, onToggle, children }: { title: string; isOpen: boolean; onToggle: () => void; children: ReactNode }) => (
-  <section className="phrase-detail-section">
-    <div className="section-header">
-      <h3>{title}</h3>
-      <ToggleButton isOpen={isOpen} onClick={onToggle} />
-    </div>
-    {isOpen ? <div className="detail-section-body">{children}</div> : null}
-  </section>
-)
 
 const AutoPlayControls = ({
   autoPlayEnabled,
@@ -239,20 +250,3 @@ const AutoPlayControls = ({
     </div>
   )
 }
-
-const ToggleButton = memo(({ isOpen, onClick }: { isOpen: boolean; onClick: () => void }) => {
-  const t = useT()
-  return (
-    <button className="toggle-btn" type="button" onClick={onClick} aria-label={isOpen ? t('vocabulary.hide') : t('vocabulary.show')}>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        {isOpen ? (
-          <path d="m19 9-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        ) : (
-          <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        )}
-      </svg>
-    </button>
-  )
-})
-
-ToggleButton.displayName = 'ToggleButton'

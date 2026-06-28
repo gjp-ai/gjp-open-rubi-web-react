@@ -11,6 +11,8 @@ import { getEduLearningItems, toggleEduLearningFavoriteTag, type EduLearningKind
 import { hasSelectedTags, htmlToText } from '../eduUtils'
 import { readEduPlaySettings, saveEduPlaySettings } from '../playSettings'
 import { PhraseCard } from './PhraseCard'
+import { PhraseLearningContent } from './PhraseDetail'
+import { hasVisiblePhraseLearningContent } from './phraseLearningContentUtils'
 import { generatePrintSheet, openPrintWindow } from './printSheet'
 import './phrases.css'
 
@@ -421,6 +423,18 @@ export const EduPhrasesPage = () => {
     }
   }, [currentPlayItem, updateItem])
 
+  const handlePlayAudioClick = useCallback((audioUrl?: string | null) => {
+    if (!audioUrl) return
+    currentAudioRef.current?.pause()
+    const audio = new Audio(audioUrl)
+    currentAudioRef.current = audio
+    audio.play().catch((error) => console.error('Audio playback failed:', error))
+  }, [])
+
+  const currentPlayFullScreenContent = currentPlayItem && hasVisiblePhraseLearningContent(currentPlayItem, hiddenPlayFields) ? (
+    <PhraseLearningContent phrase={currentPlayItem} hiddenFieldKeys={hiddenPlayFields} onPlayAudio={handlePlayAudioClick} />
+  ) : null
+
   return (
     <div className="page-container edu-page phrases-page">
       <section className="vocab-toolbar" aria-label={t('vocabulary.filters')}>
@@ -559,9 +573,11 @@ export const EduPhrasesPage = () => {
           order={playOrder}
           isPaused={isPlayPaused}
           currentTitle={currentPlayItem?.name ?? ''}
+          currentMeta={currentPlayItem ? t('vocabulary.meta') : ''}
           currentDescription={currentPlayDescription}
           heroFields={currentPlayHeroFields}
           fullScreenFields={currentPlayFields}
+          fullScreenContent={currentPlayFullScreenContent}
           fullScreenTitlePlacement="stage"
           hiddenFieldKeys={hiddenPlayFields}
           startFullScreen

@@ -91,7 +91,7 @@ export const generatePrintSheet = ({
             <div class="vocabulary-content">
               ${row(labels.translation, vocabulary.translation)}
               ${row(labels.synonyms, vocabulary.synonyms)}
-              ${row(labels.definition, vocabulary.definition ?? vocabulary.meaning ?? vocabulary.easyMeaning)}
+              ${row(labels.definition, vocabulary.definition ?? vocabulary.easyMeaning ?? vocabulary.meaning)}
               ${row(labels.example, vocabulary.example ?? vocabulary.sentenceOne)}
               ${row(labels.plural, vocabulary.nounPluralForm)}
               ${row(labels.verbTenses, verbTenses)}

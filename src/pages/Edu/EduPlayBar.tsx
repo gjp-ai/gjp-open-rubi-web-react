@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useState } from 'react'
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from 'react'
 import { useT } from '../../shared/i18n'
 import { FavoriteBadge, FavoriteToggleButton } from './FavoriteToggleButton'
 import { renderHtml } from './eduUtils'
@@ -27,6 +27,7 @@ interface EduPlayBarProps {
   currentMeta?: string
   heroFields?: EduPlayField[]
   fullScreenFields?: EduPlayField[]
+  fullScreenContent?: ReactNode
   fullScreenTitlePlacement?: 'hero' | 'stage'
   fullScreenVariant?: 'default' | 'sentence'
   hiddenFieldKeys?: string[]
@@ -61,6 +62,7 @@ export const EduPlayBar = ({
   currentMeta,
   heroFields = [],
   fullScreenFields = [],
+  fullScreenContent,
   fullScreenTitlePlacement = 'hero',
   fullScreenVariant = 'default',
   hiddenFieldKeys = [],
@@ -109,6 +111,12 @@ export const EduPlayBar = ({
   const showStageTitle = fullScreenTitlePlacement === 'stage' && currentTitle && isFieldVisible('title')
   const showHeroTitle = fullScreenTitlePlacement === 'hero' && currentTitle && isFieldVisible('title')
   const isFocusOnlyMode = availableFullScreenFields.length > 0 && availableFullScreenFields.every((field) => !isFieldVisible(field.key))
+  const canToggleFocusMode = Boolean(onHiddenFieldKeysChange && availableFieldKeys.length > 0)
+  const toggleFocusMode = useCallback(() => {
+    if (!onHiddenFieldKeysChange) return
+    onHiddenFieldKeysChange(isFocusOnlyMode ? [] : availableFieldKeys)
+    setShowFieldSettings(false)
+  }, [availableFieldKeys, isFocusOnlyMode, onHiddenFieldKeysChange])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -137,6 +145,9 @@ export const EduPlayBar = ({
       } else if (event.key.toLowerCase() === 'r') {
         event.preventDefault()
         onOrderChange(order === 'random' ? 'sequence' : 'random')
+      } else if (event.key.toLowerCase() === 'l' && canToggleFocusMode) {
+        event.preventDefault()
+        toggleFocusMode()
       } else if (event.key === 'Escape' && isFullScreen) {
         event.preventDefault()
         setIsFullScreen(false)
@@ -145,7 +156,7 @@ export const EduPlayBar = ({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentIndex, isFullScreen, onNext, onOrderChange, onPrevious, onRepeat, onStop, onTogglePause, order, safeTotal])
+  }, [canToggleFocusMode, currentIndex, isFullScreen, onNext, onOrderChange, onPrevious, onRepeat, onStop, onTogglePause, order, safeTotal, toggleFocusMode])
 
   const playPauseLabel = isPaused ? t('vocabulary.resume_auto_play') : t('vocabulary.pause_auto_play')
   const renderControls = () => (
@@ -225,6 +236,21 @@ export const EduPlayBar = ({
                   onClick={onToggleFavorite}
                 />
               ) : null}
+              {canToggleFocusMode ? (
+                <button className={`edu-play-bar__control${isFocusOnlyMode ? ' active' : ''}`} onClick={toggleFocusMode} type="button" aria-label={t('vocabulary.focus_mode')} title={`${t('vocabulary.focus_mode')} (L)`} aria-pressed={isFocusOnlyMode}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    {isFocusOnlyMode ? (
+                      <path d="M12 4a8 8 0 0 0-8 8M4 4l16 16M20 12a8 8 0 0 0-8-8M7.5 7.5A11 11 0 0 0 2.5 12S6 18 12 18c1.1 0 2.1-.2 3-.5M16.5 16.5A11 11 0 0 0 21.5 12S19.8 8.8 16.8 6.8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                    ) : (
+                      <>
+                        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" strokeWidth="2" />
+                        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+                      </>
+                    )}
+                  </svg>
+                  <kbd>L</kbd>
+                </button>
+              ) : null}
               {onToggleFieldVisibility ? (
                 <div className="edu-play-fullscreen__field-menu">
                   <button className={`edu-play-bar__control${showFieldSettings ? ' active' : ''}`} onClick={() => setShowFieldSettings((value) => !value)} type="button" aria-label={t('vocabulary.field_visibility')} title={t('vocabulary.field_visibility')} aria-expanded={showFieldSettings}>
@@ -272,7 +298,11 @@ export const EduPlayBar = ({
               </button>
             </div>
           </div>
-          <div className={`edu-play-fullscreen__content${fullScreenTitlePlacement === 'stage' ? ' edu-play-fullscreen__content--stage-title' : ''}${fullScreenVariant === 'sentence' ? ' edu-play-fullscreen__content--sentence' : ''}`}>
+          <div className={`edu-play-fullscreen__content${fullScreenContent ? ' edu-play-fullscreen__content--custom' : ''}${fullScreenTitlePlacement === 'stage' ? ' edu-play-fullscreen__content--stage-title' : ''}${fullScreenVariant === 'sentence' ? ' edu-play-fullscreen__content--sentence' : ''}`}>
+            {fullScreenContent ? (
+              fullScreenContent
+            ) : (
+            <>
             {showStageTitle ? (
               fullScreenVariant === 'sentence' ? (
                 <div className="edu-play-fullscreen__sentence-title" dangerouslySetInnerHTML={renderHtml(currentTitle)} />
@@ -290,14 +320,6 @@ export const EduPlayBar = ({
                 </div>
                 <span>{t('vocabulary.focus_mode')}</span>
                 <p>{t('vocabulary.focus_mode_description')}</p>
-                {onHiddenFieldKeysChange ? (
-                  <button onClick={() => onHiddenFieldKeysChange([])} type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" />
-                    </svg>
-                    {t('vocabulary.restore_fields')}
-                  </button>
-                ) : null}
               </div>
             ) : (
             <div className="edu-play-fullscreen__stage">
@@ -339,6 +361,8 @@ export const EduPlayBar = ({
                 <div className="edu-play-fullscreen__description" dangerouslySetInnerHTML={renderHtml(currentDescription)} />
               ) : null}
             </div>
+            )}
+            </>
             )}
             {renderProgressControl('edu-play-bar__progress edu-play-fullscreen__progress')}
           </div>
