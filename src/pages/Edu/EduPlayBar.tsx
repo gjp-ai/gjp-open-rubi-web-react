@@ -12,7 +12,7 @@ export interface EduPlayField {
   value?: string | number | null
 }
 
-export const EDU_PLAY_INTERVALS = [2000, 5000, 10000, 15000, 20000, 25000] as const
+export const EDU_PLAY_INTERVALS = [5000, 10000, 20000, 3600000] as const
 
 interface EduPlayBarProps {
   currentIndex: number
