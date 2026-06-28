@@ -167,9 +167,9 @@ export const VocabularyDetail = ({
   const renderHtmlSection = (section: ToggleSection, title: string, content?: string | null) => {
     if (!content?.trim()) return null
     return (
-      <DetailSection section={section} title={title} isOpen={toggleStates[section]} onToggle={() => toggleSection(section)}>
+      <DictionarySection section={section} title={title} isOpen={toggleStates[section]} onToggle={() => toggleSection(section)}>
         <div className="detail-html" dangerouslySetInnerHTML={renderHtml(content)} />
-      </DetailSection>
+      </DictionarySection>
     )
   }
 
@@ -200,72 +200,108 @@ export const VocabularyDetail = ({
         </div>
 
         <div className="detail-content">
-          <div className="detail-hero">
-            <div className="detail-hero__main">
-              <p className="detail-eyebrow">{t('nav.edu_vocabularies')}</p>
+          <div className="vocabulary-player-intro">
+            <div className="vocabulary-player-word-row">
               <h1 className="detail-word">{htmlToText(currentVocabulary.name)}</h1>
-              {pronunciations.length ? (
-                <div className="detail-pronunciation-list">
-                  {pronunciations.map((item) => (
-                    <div className="detail-pronunciation-card" key={`${item.label}-${item.value}`}>
-                      <span className="detail-pronunciation-label">{item.label}</span>
-                      <span className="detail-phonetic">/{htmlToText(item.value)}/</span>
-                      {item.audioUrl ? (
-                        <button className="detail-audio-btn detail-audio-btn--large" onClick={() => playAudio(item.audioUrl)} title={`${t('vocabulary.play_pronunciation')} ${item.label}`} type="button">
-                          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
-                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M18.07 5.93a9 9 0 0 1 0 12.73" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : null}
             </div>
-            {imageUrl ? (
-              <div className="detail-image-container">
-                <img src={imageUrl} alt={htmlToText(currentVocabulary.name)} />
+
+            {pronunciations.length ? (
+              <div className="detail-pronunciation-list detail-pronunciation-list--player">
+                {pronunciations.map((item) => (
+                  <div className="detail-pronunciation-card" key={`${item.label}-${item.value}`}>
+                    <span className="detail-pronunciation-label">{item.label}</span>
+                    <span className="detail-phonetic">/{htmlToText(item.value)}/</span>
+                    {item.audioUrl ? (
+                      <button className="detail-audio-btn detail-audio-btn--large" onClick={() => playAudio(item.audioUrl)} title={`${t('vocabulary.play_pronunciation')} ${item.label}`} type="button">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07M18.07 5.93a9 9 0 0 1 0 12.73" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
               </div>
+            ) : null}
+
+            {(currentVocabulary.easyMeaning?.trim() || currentVocabulary.sentenceOne?.trim()) ? (
+              <section className={`vocabulary-player-meaning${currentVocabulary.easyMeaning?.trim() && currentVocabulary.sentenceOne?.trim() ? '' : ' vocabulary-player-meaning--single'}`}>
+                {currentVocabulary.easyMeaning?.trim() ? (
+                  <div className="vocabulary-player-meaning-item vocabulary-player-meaning-item--primary">
+                    <span className="vocabulary-player-meaning-icon" aria-label={t('vocabulary.easy_meaning')} title={t('vocabulary.easy_meaning')}>
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 3a6 6 0 0 0-3.6 10.8c.37.28.6.7.6 1.16V16h6v-1.04c0-.46.23-.88.6-1.16A6 6 0 0 0 12 3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                        <path d="M9.5 19h5M10 22h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                    <div className="detail-html" dangerouslySetInnerHTML={renderHtml(currentVocabulary.easyMeaning)} />
+                  </div>
+                ) : null}
+                {currentVocabulary.sentenceOne?.trim() ? (
+                  <div className="vocabulary-player-meaning-item">
+                    <span className="vocabulary-player-meaning-icon vocabulary-player-meaning-icon--sentence" aria-label={t('vocabulary.sentence_one')} title={t('vocabulary.sentence_one')}>
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 5h14v10H8l-3 3V5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                        <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                    <div className="detail-html" dangerouslySetInnerHTML={renderHtml(currentVocabulary.sentenceOne)} />
+                  </div>
+                ) : null}
+              </section>
             ) : null}
           </div>
 
-          {hasMeta ? (
-            <div className="detail-meta-info detail-meta-info--row">
-              {currentVocabulary.partOfSpeech ? <span className="detail-meta-item">{currentVocabulary.partOfSpeech}</span> : null}
-              {currentVocabulary.term ? <span className="detail-meta-item">{t('vocabulary.term')} {currentVocabulary.term}</span> : null}
-              {currentVocabulary.week ? <span className="detail-meta-item">{t('vocabulary.week')} {currentVocabulary.week}</span> : null}
-              {currentVocabulary.difficultyLevel ? <span className="detail-difficulty" data-level={currentVocabulary.difficultyLevel.toLowerCase()}>{currentVocabulary.difficultyLevel}</span> : null}
-              {tags.map((tag) => <span key={tag} className="detail-tag">{tag}</span>)}
-            </div>
-          ) : null}
-
-          <div className="detail-section-grid">
+          <div className="vocabulary-dictionary-layout">
+            {hasMeta ? (
+              <section className="detail-dictionary-row">
+                <h3>{t('vocabulary.meta')}</h3>
+                <div className="detail-dictionary-body">
+                  <div className="detail-meta-info detail-meta-info--row">
+                    {currentVocabulary.partOfSpeech ? <span className="detail-meta-item">{currentVocabulary.partOfSpeech}</span> : null}
+                    {currentVocabulary.term ? <span className="detail-meta-item">{t('vocabulary.term')} {currentVocabulary.term}</span> : null}
+                    {currentVocabulary.week ? <span className="detail-meta-item">{t('vocabulary.week')} {currentVocabulary.week}</span> : null}
+                    {currentVocabulary.difficultyLevel ? <span className="detail-difficulty" data-level={currentVocabulary.difficultyLevel.toLowerCase()}>{currentVocabulary.difficultyLevel}</span> : null}
+                    {tags.map((tag) => <span key={tag} className="detail-tag">{tag}</span>)}
+                  </div>
+                </div>
+              </section>
+            ) : null}
             {renderHtmlSection('translation', t('vocabulary.translation'), currentVocabulary.translation)}
             {currentVocabulary.synonyms?.trim() ? (
-              <DetailSection section="synonyms" title={t('vocabulary.synonyms')} isOpen={toggleStates.synonyms} onToggle={() => toggleSection('synonyms')}>
+              <DictionarySection section="synonyms" title={t('vocabulary.synonyms')} isOpen={toggleStates.synonyms} onToggle={() => toggleSection('synonyms')}>
                 <div className="detail-synonym-list">
                   {currentVocabulary.synonyms.split(/[,;，；]/).map((synonym) => synonym.trim()).filter(Boolean).map((synonym) => (
                     <span className="detail-synonym" key={synonym}>{synonym}</span>
                   ))}
                 </div>
-              </DetailSection>
+              </DictionarySection>
             ) : null}
             {renderHtmlSection('meaningClue', t('vocabulary.meaning_clue'), currentVocabulary.meaningClue)}
-            {renderHtmlSection('easyMeaning', t('vocabulary.easy_meaning'), currentVocabulary.easyMeaning)}
             {renderHtmlSection('meaning', t('vocabulary.meaning'), currentVocabulary.meaning)}
-            {renderHtmlSection('sentenceOne', t('vocabulary.sentence_one'), currentVocabulary.sentenceOne)}
             {renderHtmlSection('sentenceTwo', t('vocabulary.sentence_two'), currentVocabulary.sentenceTwo)}
             {renderHtmlSection('additionalInfo', t('vocabulary.additional_info'), currentVocabulary.additionalInfo)}
+            {imageUrl ? (
+              <section className="detail-dictionary-row">
+                <h3>{t('vocabulary.image')}</h3>
+                <div className="detail-dictionary-body">
+                  <div className="detail-image-container">
+                    <img src={imageUrl} alt={htmlToText(currentVocabulary.name)} />
+                  </div>
+                </div>
+              </section>
+            ) : null}
+            {dictionaryUrl ? (
+              <section className="detail-dictionary-row">
+                <h3>{t('vocabulary.view_dictionary')}</h3>
+                <div className="detail-dictionary-body">
+                  <a href={dictionaryUrl} target="_blank" rel="noopener noreferrer" className="detail-dictionary-link">
+                    {t('vocabulary.view_dictionary')}
+                  </a>
+                </div>
+              </section>
+            ) : null}
           </div>
-
-          {dictionaryUrl ? (
-            <div className="detail-footer">
-              <a href={dictionaryUrl} target="_blank" rel="noopener noreferrer" className="detail-dictionary-link">
-                {t('vocabulary.view_dictionary')}
-              </a>
-            </div>
-          ) : null}
         </div>
 
         {(hasPrevious || hasNext) ? (
@@ -316,7 +352,7 @@ export const VocabularyDetail = ({
   )
 }
 
-const DetailSection = ({
+const DictionarySection = ({
   section,
   title,
   isOpen,
@@ -329,12 +365,14 @@ const DetailSection = ({
   onToggle: () => void
   children: ReactNode
 }) => (
-  <section className={`detail-section-toggle detail-section-toggle--${section}`}>
+  <section className={`detail-dictionary-row detail-section-toggle--${section}`}>
+    <h3>{title}</h3>
+    <div className="detail-dictionary-body">
+      {isOpen ? children : null}
+    </div>
     <div className="section-header">
-      <h3>{title}</h3>
       <ToggleButton isOpen={isOpen} onClick={onToggle} />
     </div>
-    {isOpen ? <div className="detail-section-body">{children}</div> : null}
   </section>
 )
 

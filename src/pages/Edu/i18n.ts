@@ -75,6 +75,7 @@ export default {
   'vocabulary.additional_info': { EN: 'Additional Info', ZH: '附加信息' },
   'vocabulary.definition': { EN: 'Definition', ZH: '定义' },
   'vocabulary.example': { EN: 'Example', ZH: '例句' },
+  'vocabulary.image': { EN: 'Image', ZH: '图片' },
   'vocabulary.noun': { EN: 'Noun', ZH: '名词' },
   'vocabulary.verb': { EN: 'Verb', ZH: '动词' },
   'vocabulary.adjective': { EN: 'Adjective', ZH: '形容词' },
